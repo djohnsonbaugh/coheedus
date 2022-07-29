@@ -35,7 +35,7 @@ def activateEQ() ->bool:
 #Copies command to clipboard and pastes it into EQ (assumes EQ is the active window -> use enterCommandSafe)
 def enterCommand(command:str) -> bool:
     pyperclip.copy(command)
-    winOS.pushKey(winKey.Enter)
+    winOS.pushKey(winKey.Down, True)
     time.sleep(.1)
     winOS.pushKey(PasteKey, PasteKeyShift, PasteKeyCtrl, PasteKeyAlt)
     time.sleep(.1)
