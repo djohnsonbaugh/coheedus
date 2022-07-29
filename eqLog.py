@@ -25,21 +25,6 @@ class eqLog(object):
             f.write("Log file reset at " + timestamp + ".\n")
         return
 
-    def follow(file, sleep_sec=0): #-> Iterator[str]:**
-        """ Yield each line from a file as they are written.
-        `sleep_sec` is the time to sleep after empty reads. """
-        line = ''
-        while True:
-            tmp = file.readline()
-            if tmp is not None:
-                line += tmp
-                if line.endswith("\n"):
-                    yield line
-                    line = ''
-            else: 
-                if sleep_sec > 0:
-                    time.sleep(sleep_sec)
-
     async def monitorLog(self, newLineFunc):
         self.resetLogFile()
         with open(self.getFileName(), 'r') as file:
