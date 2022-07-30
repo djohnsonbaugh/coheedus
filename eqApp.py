@@ -51,4 +51,12 @@ def enterCommandSafe(command:str, force:bool=False)->bool:
             return winOS.toggleWindowForFunction(EQWindowName, enterCommand, command)
         else:
             return False
-        
+
+def sendMessage(chan: str, message: str):
+    command = "/" + chan + " " + message
+    enterCommandSafe(command, True)
+    return
+
+def tell(name: str, message: str):
+    sendMessage("tell " + name, message)
+    return

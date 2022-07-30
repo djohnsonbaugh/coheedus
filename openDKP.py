@@ -28,7 +28,7 @@ class openDKP(object):
     def getDKP(self, name:str):
         trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value]).text)["Models"]
         for row in trashjson:
-            if(row["CharacterName"] == name):
+            if(row["CharacterName"].lower() == name.lower()):
                 return row["CurrentDKP"]
         return
 
