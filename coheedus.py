@@ -11,6 +11,7 @@ import asyncio
 import concurrent.futures
 import regexHelper
 from bot import botCommand
+from openDKP import openDKP
 
 #####################################
 #Read Config and Set Globals#########
@@ -20,6 +21,8 @@ print("Loading Config...")
 conf: appConfig = appConfig()
 eqApp.initConfig(conf)
 log: eqLog = eqLog(conf)
+oDKP : openDKP = openDKP(conf)
+
 
 print("Config Loaded.")
 #####################################
