@@ -45,6 +45,7 @@ def eventNewLogLine(line:str):
         print(line, end='')
 
 async def main():
+    print("Bigrax's DKP is " + oDKP.getDKP("Bigrax").__str__() + ".")
     print("Program starting....")
     loop = asyncio.get_running_loop()
 
