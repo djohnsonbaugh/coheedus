@@ -49,7 +49,7 @@ async def main():
     print("Program starting....")
     loop = asyncio.get_running_loop()
 
-    loop.create_task(fakeloop())
+    #loop.create_task(fakeloop())
     print("Monitoring Starting....")
     loop.create_task(log.monitorLog(eventNewLogLine))
     print("Monitoring Started.")
