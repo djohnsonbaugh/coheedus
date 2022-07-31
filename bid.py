@@ -6,6 +6,11 @@ class bid(object):
         Losing = 1,
         Winning = 2
 
+    class BidState(Enum):
+        Submitted = 0,
+        Losing = 1,
+        Winning = 2
+
     def __init__(self,id:int, aucid:int, sender:str, bidder:str, item:str, bid:int, max: int, increment: int):
         self.__ID:int = id
         self.__aucID:int = aucid
@@ -18,6 +23,7 @@ class bid(object):
         self.__bidMax:int = max if max > bid else bid
         self.__increment:int = increment if increment >= -1 else 0
         self.__notified:[bool] = [True, True, True]
+        self.__bidstate:BidState = BidState.Submitted
         return
 
     #PROPERTIES
@@ -45,8 +51,17 @@ class bid(object):
     def IsIncrementBid(self)->bool: return (self.__increment != 0)
     @property
     def IsPreBid(self)->bool: return (self.___aucID < 0)
+    @property
+    def Winning(self)->bool: return (self.__bidstate == BidState.Winning)
+    @property
+    def ToStr(self)->str: return self.__str__()
+    @property
+    def HasNotifications(self)->bool:
+        for b in self.__notified:
+            if(not b): return True
+        return False
 
-    def GetNextPrime(lowbid: int):
+    def __getNextPrime(lowbid: int):
         if(lowbid % 2 == 0): lowbid -= 1
         prime:bool = False
         while not prime:
@@ -59,19 +74,49 @@ class bid(object):
 
         return lowbid
 
-    def QueNotification(self, notif:Notification):
+    def __QueNotification(self, notif:Notification):
         self.__notified[notif.value] = False
         return
+    def __ClearNotification(self, notif:Notification):
+        self.__notified[notif.value] = True
+        return
 
-    def NotificationNeeded(self, notif:Notification)->bool:
+    @Winning.setter
+    def Winning(self,value:bool)->bool: 
+        newstate:BidState = BidState.Winning if value == True else BidState.Losing
+        #If state has changed, update state and setup a notification
+        if(newstate != self.__bidstate):
+            self.__ClearNotification(Notification.Winning)
+            self.__ClearNotification(Notification.Losing)
+            self.__bidstate = newstate
+            self.__QueNotification(Notification[self.__bidstate])
+
+    def __NotificationNeeded(self, notif:Notification)->bool:
         return self.__notified[notif.value]
+
+    def GetNotificationAndClear(self) ->str:
+        notif:str = ""
+        if(self.__NotificationNeeded(Notification.Losing)): 
+            notif += "OUTBID! "
+            self.__bidLast = self.Bid
+            self.__ClearNotification(Notification.Losing)
+        if(self.__NotificationNeeded(Notification.Winning)): 
+            notif += "Winning "
+            self.__bidLast = self.Bid
+            self.__ClearNotification(Notification.Winning)
+        if(self.__NotificationNeeded(Notification.Increment)): 
+            notif += "Auto Incremented " + self.BidLast.__str__() + "->" + self.Bid.__str__()
+            self.__bidLast = self.Bid
+            self.__ClearNotification(Notification.Increment)
+        notif += ": " + self.ToStr
+        return notif
 
     def IncrementBid(self, lowbid:int)->bool:
         if(lowbid >= self.BidMax): return False
         #Save last bid since last notification
-        if not self.NotificationNeeded(Notification.Incremented): self.__bidLast = self.Bid
+        if not self.__NotificationNeeded(Notification.Incremented): self.__bidLast = self.Bid
         #Update Bid
-        self.__bid = min(self.BidMax, self.GetNextPrime(lowbid) if self.Increment == -1 else lowbid + self.Increment)
+        self.__bid = min(self.BidMax, self.__getNextPrime(lowbid) if self.Increment == -1 else lowbid + self.Increment)
         #Que Notification
         self.QueNotification(Notification.Incremented)
         return True
