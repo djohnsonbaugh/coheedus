@@ -1,3 +1,4 @@
+import re
 class botCommand(object):
     """description of class"""
 
@@ -14,6 +15,7 @@ class botCommand(object):
         if(self.Channel == "raid"): self.Channel = "rsay"
         self.Text = text
         self.Params: [str] = []
+        self.regMatch:re.Match = None
         params: [str] = text.split(' ')
         for param in params:
             self.Params.append(param.strip())

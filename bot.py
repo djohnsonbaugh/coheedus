@@ -15,7 +15,7 @@ AuctionChannel = "rsay"
 # NORMAL COMMANDS
 def exAucID(cmd: botCommand) ->str:
 
-    return "Not Implemented"
+    return "Not Implemented but i found and id:" + cmd.regMatch.group(1)
 
 def exAdmin(cmd: botCommand) -> str:
     global AdminChannel
@@ -40,13 +40,13 @@ def exChan(cmd: botCommand) -> str:
 
 cmdRegistration = {
     "Normal" : {
-        "ADMIN"                 : exAdmin,
-        "DKP"                   : exDKP,
-        regexHelper.intPattern  : exAucID
+        "ADMIN"                     : exAdmin,
+        "DKP"                       : exDKP,
+        regexHelper.aucIDPattern    : exAucID
     },
     "Admin" : {
-        "AUC"                   : exAuc,       
-        "CHAN"                  : exChan,       
+        "AUC"                       : exAuc,       
+        "CHAN"                      : exChan,       
     }
 }
 
@@ -57,12 +57,12 @@ def reply(cmd: botCommand, message: str):
 
 def execute(cmd: botCommand):
     for command in cmdRegistration["Normal"]:
-        if regexHelper.equalsCommand(command, cmd.Cmd):
+        if regexHelper.eqCommand(command, cmd):
             reply(cmd, cmdRegistration["Normal"][command](cmd))
             return
     if(cmd.Channel == AdminChannel):
         for command in cmdRegistration["Admin"]:
-            if regexHelper.equalsCommand(command, cmd.Cmd):
+            if regexHelper.eqCommand(command, cmd):
                 reply(cmd, cmdRegistration["Admin"][command](cmd))
                 return
     return
