@@ -12,6 +12,7 @@
     <RootNamespace>coheedus</RootNamespace>
     <InterpreterId>
     </InterpreterId>
+    <SuppressConfigureTestFrameworkPrompt>true</SuppressConfigureTestFrameworkPrompt>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,7 +26,13 @@
     <Compile Include="appConfig.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="bid.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="bot.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="botCommand.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="coheedus.py" />

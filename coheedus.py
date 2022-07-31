@@ -1,7 +1,7 @@
 import asyncio
 from appConfig import appConfig
 import eqApp
-from bot import botCommand
+from botCommand import botCommand
 import bot
 from eqLog import eqLog
 import regexHelper

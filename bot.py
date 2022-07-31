@@ -1,52 +1,35 @@
 import eqApp
 from appConfig import appConfig
 from openDKP import openDKP
+from botCommand import botCommand
+import regexHelper
 oDKP : openDKP = None
 def initConfig(config: appConfig):
     global oDKP
     oDKP = openDKP(config)
     return
 
-class botCommand(object):
-    """description of class"""
-
-    def __init__(self):
-        self.Sender = ""
-        self.Channel = ""
-        self.Text = ""
-        return
-
-    def set(self, sender: str, channel: str, text:str):
-        self.Sender = sender
-        self.Channel = channel
-        if(self.Channel == "group"): self.Channel = "g"
-        if(self.Channel == "raid"): self.Channel = "rsay"
-        self.Text = text
-        self.Params: [str] = []
-        params: [str] = text.split(' ')
-        for param in params:
-            self.Params.append(param.strip())
-        self.Cmd:str = self.Params[0].upper()
-        self.ParCount: int = len(self.Params)- 1
-        return
-
 AdminChannel = ""
 AuctionChannel = "rsay"
 
-def reply(cmd: botCommand, message: str):
-    if(cmd.Channel == "you"): eqApp.tell(cmd.Sender, message)
-    else: eqApp.sendMessage(cmd.Channel, message)
-    return
+# NORMAL COMMANDS
+def exAucID(cmd: botCommand) ->str:
+
+    return "Not Implemented"
+
+def exAdmin(cmd: botCommand) -> str:
+    global AdminChannel
+    AdminChannel = cmd.Channel
+    return "Admin Commands & Messages Here"
 
 def exDKP(cmd: botCommand) -> str:
     name = cmd.Params[1] if cmd.ParCount > 0 else cmd.Sender
     dkp = oDKP.getDKP(name)
     return dkp.__str__() + " DKP for " + name
 
-def exAdmin(cmd: botCommand) -> str:
-    global AdminChannel
-    AdminChannel = cmd.Channel
-    return "Admin Commands & Messages Here"
+# ADMIN COMMANDS
+def exAuc(cmd: botCommand) -> str:
+    return "Not Implemented"
 
 def exChan(cmd: botCommand) -> str:
     global AuctionChannel
@@ -57,22 +40,29 @@ def exChan(cmd: botCommand) -> str:
 
 cmdRegistration = {
     "Normal" : {
-        "DKP"   : exDKP,
-        "ADMIN" : exAdmin
+        "ADMIN"                 : exAdmin,
+        "DKP"                   : exDKP,
+        regexHelper.intPattern  : exAucID
     },
     "Admin" : {
-        "CHAN"   : exChan,       
+        "AUC"                   : exAuc,       
+        "CHAN"                  : exChan,       
     }
 }
 
+def reply(cmd: botCommand, message: str):
+    if(cmd.Channel == "you"): eqApp.tell(cmd.Sender, message)
+    else: eqApp.sendMessage(cmd.Channel, message)
+    return
+
 def execute(cmd: botCommand):
     for command in cmdRegistration["Normal"]:
-        if command == cmd.Cmd:
+        if regexHelper.equalsCommand(command, cmd.Cmd):
             reply(cmd, cmdRegistration["Normal"][command](cmd))
             return
     if(cmd.Channel == AdminChannel):
         for command in cmdRegistration["Admin"]:
-            if command == cmd.Cmd:
+            if regexHelper.equalsCommand(command, cmd.Cmd):
                 reply(cmd, cmdRegistration["Admin"][command](cmd))
                 return
     return
