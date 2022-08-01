@@ -9,10 +9,10 @@ oDKP: openDKP = None
 async def test():
     global oDKP
     oDKP = bot.oDKP
-
+    
     #TEST Single Calls HERE
     #######################
-    
+    oDKP.insertRaid()
     #print("Bigrax DKP is " + oDKP.getDKP("Bigrax").__str__())
 
     while True:

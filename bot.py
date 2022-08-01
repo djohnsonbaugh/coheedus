@@ -7,7 +7,6 @@ oDKP : openDKP = None
 def initConfig(config: appConfig):
     global oDKP
     oDKP = openDKP(config)
-    oDKP.insertRaid()
     return
 
 AdminChannel = ""
