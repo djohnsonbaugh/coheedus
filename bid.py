@@ -1,4 +1,4 @@
-class bid(object):
+class Bid(object):
     """description of class"""
 
     class Notification(Enum):
@@ -16,6 +16,8 @@ class bid(object):
         self.__aucID:int = aucid
         self.__sender:str = sender
         self.__bidder:str = bidder
+        self.__disabled:bool = False
+        self.__override:bool = False
         self.__item:str = item
         self.__bidMin:int = bid
         self.__bid:int = bid
@@ -60,6 +62,14 @@ class bid(object):
         for b in self.__notified:
             if(not b): return True
         return False
+    @property
+    def Disabled(self)->bool: return self.__disabled
+    def Overriden(self)->bool: return self.__override
+
+    def Disable(self): self.__disabled = True
+    def OverrideDisable(self): 
+        self.__disabled = False
+        self.__override = True
 
     def __getNextPrime(lowbid: int):
         if(lowbid % 2 == 0): lowbid -= 1
@@ -108,7 +118,7 @@ class bid(object):
             notif += "Auto Incremented " + self.BidLast.__str__() + "->" + self.Bid.__str__()
             self.__bidLast = self.Bid
             self.__ClearNotification(Notification.Increment)
-        notif += ": " + self.ToStr
+        notif += " " + self.ToStr
         return notif
 
     def IncrementBid(self, lowbid:int)->bool:

@@ -26,6 +26,9 @@
     <Compile Include="appConfig.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="auction.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="bid.py">
       <SubType>Code</SubType>
     </Compile>
