@@ -13,9 +13,17 @@ AdminChannel = ""
 AuctionChannel = "rsay"
 
 # NORMAL COMMANDS
-def exAucID(cmd: botCommand) ->str:
-
-    return "Not Implemented but i found and id:" + cmd.regMatch.group(1)
+def exBid(cmd: botCommand) ->str:
+    id = cmd.regMatch.group("bidId") if 'bidId' in cmd.regMatch.groupdict() else -1
+    item = cmd.regMatch.group("bidItem") if 'bidItem' in cmd.regMatch.groupdict() else ""
+    bidVal = cmd.regMatch.group("bidVal")
+    bidMax = cmd.regMatch.group("bidMax")
+    bidInc = cmd.regMatch.group("bidInc")
+    proxyToon = cmd.regMatch.group("proxyToon")
+    if id > 0:
+        return "Not Implemented but I if it did you would have bid on auction:" + id
+    else:
+        return "Not Implemented but I if it did you would have bid on item:" + item
 
 def exAdmin(cmd: botCommand) -> str:
     global AdminChannel
@@ -28,8 +36,21 @@ def exDKP(cmd: botCommand) -> str:
     return dkp.__str__() + " DKP for " + name
 
 # ADMIN COMMANDS
-def exAuc(cmd: botCommand) -> str:
-    return "Not Implemented"
+def exEditAuc(cmd: botCommand) -> str:
+    id = cmd.regMatch.group("aucId")
+    cmdType = cmd.regMatch.group("cmdType")
+    duration = cmd.regMatch.group("duration")
+    
+    return "Auctions do not exist yet therefore i cannot " + cmdType + " them"
+
+def exNewAuc(cmd: botCommand) -> str:
+    switchOpts = cmd.regMatch.group("switchOpts")
+    itemsStr = cmd.regMatch.group("items")
+    # items = itemsStr.split(|)    
+    duration = cmd.regMatch.group("duration")
+    quanity = cmd.regMatch.group("quanity")
+
+    return "Can't start new auction yet on " + itemsStr + " but options would be " + switchOpts + " duration " + duration + " quantity " + quanity
 
 def exChan(cmd: botCommand) -> str:
     global AuctionChannel
@@ -42,11 +63,13 @@ cmdRegistration = {
     "Normal" : {
         "ADMIN"                     : exAdmin,
         "DKP"                       : exDKP,
-        regexHelper.aucIDPattern    : exAucID
+        regexHelper.bidWithIDPtrn   : exBid,
+        regexHelper.bidWithItemPtrn : exBid
     },
     "Admin" : {
-        "AUC"                       : exAuc,       
-        "CHAN"                      : exChan,       
+        regexHelper.aucIdCmdsPtrn   : exEditAuc,       
+        regexHelper.aucCmdPtrn      : exNewAuc,       
+        "CHAN"                      : exChan,
     }
 }
 
