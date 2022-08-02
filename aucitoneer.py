@@ -12,5 +12,5 @@ class Aucitoneer(object):
 
     @property
     def AuctionChannel(self)->str: return self.__aucchan
-    @AdminChannel.setter
+    @AuctionChannel.setter
     def AuctionChannel(self,value:str): self.__aucchan = value
