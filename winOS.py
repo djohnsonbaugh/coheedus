@@ -145,7 +145,7 @@ def toggleWindowForFunction(winName:str, func, arg):
     hwnd:int = win32gui.GetForegroundWindow()
     actviateFirstWindow(winName)
     for i in range(0,100):
-        if(self.getActiveWindow() == winname) : break
+        if(self.getActiveWindow() == winName) : break
         time.sleep(.05)
     ret = func(arg)
     activateWindow(hwnd)
