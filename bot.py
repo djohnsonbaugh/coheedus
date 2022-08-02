@@ -3,7 +3,7 @@ from appConfig import appConfig
 from openDKP import openDKP
 from botCommand import botCommand
 import regexHelper
-from auctioneer import Aucitoneer
+from aucitoneer import Aucitoneer
 oDKP : openDKP = None
 def initConfig(config: appConfig):
     global oDKP
@@ -13,23 +13,21 @@ def initConfig(config: appConfig):
 AdminChannel    = ""
 
 
-AucMaster:Aunctioneer = Auctioneer(auctionchan = "rsay",maxauctions = 3)
-#obsolete....below
-AuctionChannel  = "rsay"
+AucMaster:Aucitoneer = Aucitoneer(auctionchan = "rsay",maxactiveauctions = 3)
 
 # NORMAL COMMANDS
 def exBid(cmd: botCommand) ->str:
-    id          = int(cmd.regMatch.group("bidId"))      if 'bidId' in cmd.regMatch.groupdict() else -1
-    item        =     cmd.regMatch.group("bidItem")     if 'bidItem' in cmd.regMatch.groupdict() else ""
+    aucId       = int(cmd.regMatch.group("aucId"))      if 'aucId' in cmd.regMatch.groupdict() else -1
+    aucItem     =     cmd.regMatch.group("aucItem")     if 'aucItem' in cmd.regMatch.groupdict() else ""
     name        = cmd.Sender
     bidVal      = int(cmd.regMatch.group("bidVal"))
     bidMax      = int(cmd.regMatch.group("bidMax"))     if cmd.regMatch.group("bidMax")     is not None else bidVal
     bidInc      = int(cmd.regMatch.group("bidInc"))     if cmd.regMatch.group("bidInc")     is not None else 1
     proxyToon   =     cmd.regMatch.group("proxyToon")   if cmd.regMatch.group("proxyToon")  is not None else ""
-    if id > 0:
-        return "Auctions do not exist but I if they did you would have bid on auction:" + id.__str__()
+    if aucId > 0:
+        return "Auctions do not exist but I if they did you would have bid on auction:" + aucId.__str__()
     else:
-        return "Auctions do not exist but I if it did you would have bid on item:" + item
+        return "Auctions do not exist but I if it did you would have bid on item:" + aucItem
 
 def exAdmin(cmd: botCommand) -> str:
     global AdminChannel
@@ -59,17 +57,37 @@ def exNewAuc(cmd: botCommand) -> str:
     return "Can't start new auction yet on " + itemsStr + " but options would be " + switchOpts + " duration " + duration.__str__() + " quantity " + quanity.__str__()
 
 def exChan(cmd: botCommand) -> str:
-    global AuctionChannel
-    AuctionChannel = cmd.Params[1] if cmd.ParCount > 0 else AuctionChannel
-    return "Auction channel currently set to: " + AuctionChannel
+    description = "Channel Set command configures where auctions will take place."
+    usage = "Usage: \"!chan <group|g|raid|rsay|guild|gu>\""
+    validChans = ["group","g","raid","rsay","guild","gu"]
+
+    if not cmd.ParCount > 0: 
+        return "Error: no channel specified. " + usage + " Auction channel currently set to: " + AucMaster.AuctionChannel
+    if cmd.Params[1] not in validChans:
+        return "Error: Channel specified is not in approved list " + usage 
+    else:
+        AucMaster.AuctionChannel = cmd.Params[1]
+        return "Auction channel currently set to: " + AucMaster.AuctionChannel
 
 def exClear(cmd: botCommand) -> str:
-    return "Clearing something, not sure what"
+    usage = "Clear command deletes all auctions and bids closed active and pending. usage: \"!clear\""
+    AucMaster.ClearAuctionsAndBids()
+    return "Nuked it ALL, start over. GL"
 
 def exMax(cmd: botCommand) -> str:
-    numMax      = cmd.Params[1] if cmd.ParCount > 0 else 3
-    return "I would set the max auctions to "+ numMax.__str__() + " if i knew how"
-
+    description = "Max command sets the number of concurrent auction"
+    usage = "Usage: \"!max <num>\" where <num> is a positive integer."
+    if cmd.ParCount > 0 and cmd.Params[1].isnumeric():
+        maxAuc = int(cmd.Params[1])
+    elif cmd.ParCount > 0:
+        return "Error: <num> entered <"+cmd.Params[1]+"> is not a positive integer " + usage
+    else:
+        return "Error: No <num> given " + usage + "Current max is " + AucMaster.MaxActiveAuctions.__str__()
+    if maxAuc < 1:
+        return "Error: <num> entered <"+cmd.Params[1]+"> is not positive " + usage
+    AucMaster.MaxActiveAuctions = maxAuc
+    return "Max concurrent auctions set to "+ AucMaster.MaxActiveAuctions.__str__()
+    
 
 cmdRegistration = {
     "Normal" : {

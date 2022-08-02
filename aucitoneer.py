@@ -1,7 +1,7 @@
 class Aucitoneer(object):
     """description of class"""
 
-    def __init__(self,auctionchan:str, maxauctions:int):
+    def __init__(self,auctionchan:str, maxactiveauctions:int):
         self.__aucchan = auctionchan
         self.__maxaucs = maxactiveauctions
         self.__auctions:[Auction] = []
