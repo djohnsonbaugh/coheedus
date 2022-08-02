@@ -10,9 +10,11 @@ def initConfig(config: appConfig):
     oDKP = openDKP(config)
     return
 
-AucMaster:Aunctioneer = Auctioneer(adminchan="", auctionchan = "rsay")
-#obsolete....below
 AdminChannel    = ""
+
+
+AucMaster:Aunctioneer = Auctioneer(auctionchan = "rsay")
+#obsolete....below
 AuctionChannel  = "rsay"
 
 # NORMAL COMMANDS
