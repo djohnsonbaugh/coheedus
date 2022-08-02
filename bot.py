@@ -4,6 +4,7 @@ from openDKP import openDKP
 from botCommand import botCommand
 import regexHelper
 from auctioneer import Auctioneer
+import asyncio
 oDKP : openDKP = None
 def initConfig(config: appConfig):
     global oDKP

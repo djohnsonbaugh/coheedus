@@ -1,6 +1,7 @@
 from auction import Auction
 from bid import Bid
 import eqApp
+from datetime import datetime, timedelta
 class Auctioneer(object):
     """description of class"""
 
@@ -83,14 +84,14 @@ class Auctioneer(object):
 
     def __getActiveAuctionsCount(self):
         count = 0
-        for a in self.__auctions.values:
+        for a in self.__auctions.values():
             if a.Active: count += 1
 
         return count
 
     def __getAvailableAuctions(self)->[Auction]:
-        auctions[Auction] = []
-        for auction in self.__auctions.values:
+        auctions:[Auction] = []
+        for auction in self.__auctions.values():
             if not auction.Closed and auction.Scheduled:
                 auctions.append(auction)
         return auctions
@@ -114,16 +115,16 @@ class Auctioneer(object):
         zero = timedelta(0)
 
         #NOTIFY PROXY BIDDERS
-        for auction in self.__auctions.values:
+        for auction in self.__auctions.values():
             for bid in auction.GetProxyBidNotifications():
                 self.NotifyProxyBidder(bid)
         #NOTIFY BIDDERS
-        for auction in self.__auctions.values:
+        for auction in self.__auctions.values():
             for bid in auction.GetBidNotifications():
                 self.NotifyBidder(bid)
         
         #UNAWARD RESTARTED AUCTIONS
-        for auction in self.__auctions.values:
+        for auction in self.__auctions.values():
             if auction.Awarded and not auction.Closed:
                 for message in auction.UnAward():
                     SendAuctionMessage(message)
@@ -142,12 +143,12 @@ class Auctioneer(object):
                     #LATE AUCTION
                     (auction.TimeSinceLastAnnouncement > shortwait and auction.TimeLeft < minute and auction.TimeLeft > zero) or
                     #LAST CALL AUCTION
-                    (auction.TimeLeft =< zero and auction.TimeSinceLastBid < shortwait)
+                    (auction.TimeLeft <= zero and auction.TimeSinceLastBid < shortwait)
                     ):
                     message = "Bids:" if auction.TimeLeft > 0 else "LAST CALL:"
                     SendAuctionMessage(message + auction.Announce())
                 else:
-                    if auction.TimeLeft =< zero:
+                    if auction.TimeLeft <= zero:
                         if not auction.Closed:
                             SendAuctionMessage(auction.AnounceClosed())
                             SendAdminMessage("Ready To Award:" + auction.WinnerSummary)

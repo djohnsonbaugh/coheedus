@@ -96,18 +96,12 @@ class Auction(object):
             if(not self.__IncrementBids()): break
         for bid in self.__bids:
             bid.Winning = self.__IsWinning(bid)
+        return
 
     def AddBidComplete(self, bid:Bid)->str:
         if self.__scheduled:
             self.__Calculate()
         return bid.GetNotificationAndClear()
-
-    def FindAcitveBidToCancel(self, bidder:str, bidsearch:Bid) ->bool:
-        for b in reversed(self.__bids):
-            if b.Bidder == bidder and b.Active:
-                bidsearch = b
-                return True
-        return False
 
     def GetProxyBidNotifications(self)->[Bid]:
         bids:[Bid] = []
@@ -122,12 +116,19 @@ class Auction(object):
             if b.NotificationNeeded:
                 bids.append(b)
         return bids
-
+    
     def FindEqualBid(self, bid:Bid, bidsearch:Bid)->bool:
         for b in reversed(self.__bids):
             if bid.Equals(b):
                 bidsearch = b
                 return True 
+        return False
+
+    def FindAcitveBidToCancel(self, bidder:str, bidsearch:Bid)->bool:
+        for b in reversed(self.__bids):
+            if b.Bidder == bidder and b.Active:
+                bidsearch = b
+                return True
         return False
 
     def AddBid(self, sender:str, bidder:str, item:str, bidderdkp:float, bid:int, max: int, increment: int)->str:
@@ -262,8 +263,6 @@ class Auction(object):
         aucstring += "] " + self.Item
         aucstring += " x" + self.ItemCount.__str__()
         return aucstring
-
-
 
 
 
