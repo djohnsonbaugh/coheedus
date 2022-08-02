@@ -13,7 +13,7 @@ def initConfig(config: appConfig):
 AdminChannel    = ""
 
 
-AucMaster:Aunctioneer = Auctioneer(auctionchan = "rsay")
+AucMaster:Aunctioneer = Auctioneer(auctionchan = "rsay",maxauctions = 3)
 #obsolete....below
 AuctionChannel  = "rsay"
 
