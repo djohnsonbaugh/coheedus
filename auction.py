@@ -1,13 +1,16 @@
 from bid import Bid
 class Auction(object):
     """description of class"""
-    def __init__(self,id:int, item:str, itemcount:int, minutes:float):
+    def __init__(self,id:int, item:str, itemcount:int, minutes:float, autostart:bool=False, autoaward:bool=False):
         self.__ID:int = id
         self.__item:str = item
         self.__itemcount:int = itemcount
         self.__minutes:float = minutes
         self.__bids:[Bid] = []
         self.__winners:[Bid] = []
+        self.__autostart:bool = autostart
+        self.__autoaward:bool = autoaward
+        self.__closed:bool = False
         return
     
     #PROPERTIES
@@ -21,7 +24,8 @@ class Auction(object):
         return self.__winners[len(self.__winners)-1].Bid
     @property
     def ItemCount(self)->int: return self.__itemcount
-
+    @property
+    def Closed(self)->bool: return self.__closed
 
     def __IsWinning(bid:Bid):
         for b in self.__winners:

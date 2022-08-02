@@ -3,7 +3,7 @@ from appConfig import appConfig
 from openDKP import openDKP
 from botCommand import botCommand
 import regexHelper
-from aucitoneer import Aucitoneer
+from auctioneer import Auctioneer
 oDKP : openDKP = None
 def initConfig(config: appConfig):
     global oDKP
@@ -13,7 +13,7 @@ def initConfig(config: appConfig):
 AdminChannel    = ""
 
 
-AucMaster:Aucitoneer = Aucitoneer(auctionchan = "rsay",maxactiveauctions = 3)
+AucMaster:Auctioneer = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3)
 
 # NORMAL COMMANDS
 def exBid(cmd: botCommand) ->str:

@@ -1,10 +1,12 @@
-class Aucitoneer(object):
+from auction import Auction
+from bid import Bid
+class Auctioneer(object):
     """description of class"""
 
     def __init__(self,auctionchan:str, maxactiveauctions:int):
         self.__aucchan = auctionchan
         self.__maxaucs = maxactiveauctions
-        self.__auctions:[Auction] = []
+        self.__auctions:{int,Auction} = {}
 
         return
 
@@ -20,12 +22,18 @@ class Aucitoneer(object):
     def MaxActiveAuctions(self,value:int): self.__maxaucs = value
 
     def AddAuction(self, item:str, minutes: float=3.0, itemcount: int=1, autostart:bool=False, autoaward:bool=False)->str:
+        id = len(self.__auctions)
+        self.__auctions[id] = Auction(id,item,itemcount,minutes,autostart,autoaward)
 
         return "Not Implemented"
 
     def AddBid(self, aucid:int, sender:str, bidder:str, item:str, bid:int, max: int, increment: int)->str:
-
-        return "Not Implemented"
+        if aucid == -1:
+            return "Prebid not implemented."
+        if aucid in self.__auctions.keys():
+            if self.__auctions[aucid].Closed: return "Auction with ID[" + aucid + "] is closed."
+            else: return self.__auctions[aucid].AddBid(sender, bidder, item, bid, max, increment)
+        return "Auction with ID[" + aucid + "] does not exist."
 
     def StartAuction(self, aucid:int, minutes: float=-1.0)->str:
 

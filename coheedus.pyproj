@@ -26,7 +26,7 @@
     <Compile Include="appConfig.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="aucitoneer.py">
+    <Compile Include="auctioneer.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="auction.py">
