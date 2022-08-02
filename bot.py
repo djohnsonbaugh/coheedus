@@ -3,12 +3,15 @@ from appConfig import appConfig
 from openDKP import openDKP
 from botCommand import botCommand
 import regexHelper
+from auctioneer import Aucitoneer
 oDKP : openDKP = None
 def initConfig(config: appConfig):
     global oDKP
     oDKP = openDKP(config)
     return
 
+AucMaster:Aunctioneer = Auctioneer(adminchan="", auctionchan = "rsay")
+#obsolete....below
 AdminChannel    = ""
 AuctionChannel  = "rsay"
 
