@@ -18,9 +18,9 @@ def exBid(cmd: botCommand) ->str:
     item        =     cmd.regMatch.group("bidItem")     if 'bidItem' in cmd.regMatch.groupdict() else ""
     name        = cmd.Sender
     bidVal      = int(cmd.regMatch.group("bidVal"))
-    bidMax      = int(cmd.regMatch.group("bidMax"))     if cmd.regMatch.groupdict("bidMax")     is not None else bidVal
-    bidInc      = int(cmd.regMatch.group("bidInc"))     if cmd.regMatch.group("bidInc")         is not None else 1
-    proxyToon   =     cmd.regMatch.group("proxyToon")   if cmd.regMatch.groupdict("proxyToon")  is not None else ""
+    bidMax      = int(cmd.regMatch.group("bidMax"))     if cmd.regMatch.group("bidMax")     is not None else bidVal
+    bidInc      = int(cmd.regMatch.group("bidInc"))     if cmd.regMatch.group("bidInc")     is not None else 1
+    proxyToon   =     cmd.regMatch.group("proxyToon")   if cmd.regMatch.group("proxyToon")  is not None else ""
     if id > 0:
         return "Auctions do not exist but I if they did you would have bid on auction:" + id.__str__()
     else:
@@ -55,9 +55,15 @@ def exNewAuc(cmd: botCommand) -> str:
 
 def exChan(cmd: botCommand) -> str:
     global AuctionChannel
-    if(cmd.ParCount > 0):
-        AuctionChannel = cmd.Params[1]
+    AuctionChannel = cmd.Params[1] if cmd.ParCount > 0 else AuctionChannel
     return "Auction channel currently set to: " + AuctionChannel
+
+def exClear(cmd: botCommand) -> str:
+    return "Clearing something, not sure what"
+
+def exMax(cmd: botCommand) -> str:
+    numMax      = cmd.Params[1] if cmd.ParCount > 0 else 3
+    return "I would set the max auctions to "+ numMax.__str__() + " if i knew how"
 
 
 cmdRegistration = {
@@ -71,6 +77,8 @@ cmdRegistration = {
         regexHelper.aucIdCmdsPtrn   : exEditAuc,       
         regexHelper.aucCmdPtrn      : exNewAuc,       
         "CHAN"                      : exChan,
+        "CLEAR"                     : exClear,
+        "MAX"                       : exMax
     }
 }
 
