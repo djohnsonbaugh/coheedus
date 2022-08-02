@@ -45,6 +45,10 @@ async def main():
     print("Monitoring Starting....")
     loop.create_task(log.monitorLog(eventNewLogLine))
     print("Monitoring Started.")
+
+    print("Auctioneer Starting....")
+    loop.create_task(bot.runAuctioneer())
+    print("Auctioneer Started.")
     
     while True:
         await asyncio.sleep(0)

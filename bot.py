@@ -10,9 +10,6 @@ def initConfig(config: appConfig):
     oDKP = openDKP(config)
     return
 
-AdminChannel    = ""
-
-
 AucMaster:Auctioneer = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3)
 
 # NORMAL COMMANDS
@@ -30,8 +27,7 @@ def exBid(cmd: botCommand) ->str:
         return "Auctions do not exist but I if it did you would have bid on item:" + aucItem
 
 def exAdmin(cmd: botCommand) -> str:
-    global AdminChannel
-    AdminChannel = cmd.Channel
+    AucMaster.AdminChannel = cmd.Channel
     return "Admin Commands & Messages Here"
 
 def exDKP(cmd: botCommand) -> str:
@@ -111,7 +107,7 @@ def reply(cmd: botCommand, message: str):
     return
 
 def execute(cmd: botCommand):
-    if(cmd.Channel == AdminChannel):
+    if(cmd.Channel == AucMaster.AdminChannel):
         for command in cmdRegistration["Admin"]:
             if regexHelper.eqCommand(command, cmd):
                 reply(cmd, cmdRegistration["Admin"][command](cmd))
@@ -122,3 +118,8 @@ def execute(cmd: botCommand):
             return
     return
 
+async def runAuctioneer():
+    while True:
+        AucMaster.Announce()
+        await asyncio.sleep(0)
+    return

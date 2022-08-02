@@ -4,7 +4,11 @@ class Bid(object):
     class Notification(Enum):
         Incremented = 0,
         Losing = 1,
-        Winning = 2
+        Winning = 2,
+        Disabled = 3,
+        Overriden = 4,
+        Canceled = 5,
+        ProxyBid = 6
 
     class BidState(Enum):
         Submitted = 0,
@@ -18,14 +22,17 @@ class Bid(object):
         self.__bidder:str = bidder
         self.__disabled:bool = False
         self.__override:bool = False
+        self.__canceled:bool = False
         self.__item:str = item
         self.__bidMin:int = bid
         self.__bid:int = bid
         self.__bidLast:int = bid
         self.__bidMax:int = max if max > bid else bid
         self.__increment:int = increment if increment >= -1 else 0
-        self.__notified:[bool] = [True, True, True]
+        self.__notified:[bool] = [True, True, True, True, True, True, True]
         self.__bidstate:BidState = BidState.Submitted
+        if bidder != sender:
+            self.__QueNotification(Notification.ProxyBid)
         return
 
     #PROPERTIES
@@ -36,11 +43,17 @@ class Bid(object):
     @property
     def Sender(self)->str: return self.__sender
     @property
+    def Active(self)->bool: return not self.__canceled and not self.__disabled
+    @property
+    def Canceled(self)->bool: return self.__canceled
+    @property
     def Bidder(self)->str: return self.__bidder
     @property
     def Item(self)->str: return self.__item
     @property
     def Bid(self)->int: return self.__bid
+    @property
+    def BidOriginal(self)->int: return self.__bidMin
     @property
     def BidLast(self)->int: return self.__bidLast
     @property
@@ -58,6 +71,14 @@ class Bid(object):
     @property
     def ToStr(self)->str: return self.__str__()
     @property
+    def ProxyNotificationNeeded(self)->bool: return self.__NotificationNeeded(Notification.ProxyBid)
+    @property
+    def NotificationNeeded(self)->bool: 
+        needed:bool = False
+        for n in Notification:
+            needed = needed or self.__NotificationNeeded(n)
+        return needed
+    @property
     def HasNotifications(self)->bool:
         for b in self.__notified:
             if(not b): return True
@@ -66,10 +87,15 @@ class Bid(object):
     def Disabled(self)->bool: return self.__disabled
     def Overriden(self)->bool: return self.__override
 
-    def Disable(self): self.__disabled = True
+    def Disable(self): 
+        self.__disabled = True
+        self.QueNotification(Notification.Disabled)
+        return
     def OverrideDisable(self): 
         self.__disabled = False
         self.__override = True
+        self.QueNotification(Notification.Overrided)
+        return
 
     def __getNextPrime(lowbid: int):
         if(lowbid % 2 == 0): lowbid -= 1
@@ -83,6 +109,19 @@ class Bid(object):
                     break
 
         return lowbid
+
+    def Cancel(self):
+        self.__canceled = True
+        self.QueNotification(Notification.Canceled)
+        return
+
+    def Equals(self, bid:Bid)->bool:
+        return (
+            self.Bidder == bid.Bidder and
+            self.BidOriginal == bid.BidOriginal and
+            self.BidMax == bid.BidMax and
+            self.Increment == bid.Increment
+        )
 
     def __QueNotification(self, notif:Notification):
         self.__notified[notif.value] = False
@@ -104,20 +143,31 @@ class Bid(object):
     def __NotificationNeeded(self, notif:Notification)->bool:
         return self.__notified[notif.value]
 
+    def GetProxyNotificaiton(self)->str:
+        self.__ClearNotification(Notification.ProxyBid)
+        return "Proxy Bid by " + bid.Sender + "->" + bid.ToStr
+
     def GetNotificationAndClear(self) ->str:
         notif:str = ""
-        if(self.__NotificationNeeded(Notification.Losing)): 
-            notif += "OUTBID! "
-            self.__bidLast = self.Bid
-            self.__ClearNotification(Notification.Losing)
-        if(self.__NotificationNeeded(Notification.Winning)): 
-            notif += "Winning "
-            self.__bidLast = self.Bid
-            self.__ClearNotification(Notification.Winning)
-        if(self.__NotificationNeeded(Notification.Increment)): 
-            notif += "Auto Incremented " + self.BidLast.__str__() + "->" + self.Bid.__str__()
-            self.__bidLast = self.Bid
-            self.__ClearNotification(Notification.Increment)
+        if(self.__NotificationNeeded(Notification.Disabled)): 
+            notif += "Bid Disabled Due to Overbid, Repeat Bid To Override->"
+            self.__ClearNotification(Notification.Disabled)
+        elif(self.__NotificationNeeded(Notification.Canceled)): 
+            notif += "Canceled->"
+            self.__ClearNotification(Notification.Canceled)
+        else:
+            if(self.__NotificationNeeded(Notification.Losing)): 
+                notif += "OUTBID!->"
+                self.__ClearNotification(Notification.Losing)
+            if(self.__NotificationNeeded(Notification.Winning)): 
+                notif += "Winning->"
+                self.__ClearNotification(Notification.Winning)
+            if(self.__NotificationNeeded(Notification.Increment)): 
+                notif += "Auto Incremented->" + self.BidLast.__str__() + "->" + self.Bid.__str__()
+                self.__ClearNotification(Notification.Increment)
+            if(self.__NotificationNeeded(Notification.Overriden)): 
+                notif += "Overbid Overriden->"
+                self.__ClearNotification(Notification.Overriden)
         notif += " " + self.ToStr
         return notif
 

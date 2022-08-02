@@ -25,12 +25,12 @@ class openDKP(object):
         return
 
 
-    def getDKP(self, name:str):
+    def getDKP(self, name:str)->float:
         trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value]).text)["Models"]
         for row in trashjson:
             if(row["CharacterName"].lower() == name.lower()):
-                return row["CurrentDKP"]
-        return
+                return float(row["CurrentDKP"]) if row["CurrentDKP"].isnumeric() else 10
+        return 10
 
     def loadRaidTemplate(self):
         url = "https://4jmtrkwc86.execute-api.us-east-2.amazonaws.com/beta/admin/settings/raid_templates"
