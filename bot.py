@@ -5,6 +5,7 @@ from botCommand import botCommand
 import regexHelper
 from auctioneer import Auctioneer
 import asyncio
+import re
 oDKP : openDKP = None
 def initConfig(config: appConfig):
     global oDKP
@@ -51,18 +52,19 @@ def exHelp(cmd: botCommand) -> str:
 def exEditAuc(cmd: botCommand) -> str:
     description = "Admin command starting with !<id> are editing existing auctions"
     usage = "usage: !<id> <pause|close|start|award>"
+    validChans = ["group","g","raid","rsay","guild","gu"]
     id          = int(cmd.regMatch.group("aucId"))
-    cmdType     = cmd.regMatch.group("cmdType")
+    cmdType     = cmd.regMatch.group("cmdType").lower()
     duration    = float(cmd.regMatch.group("duration")) if cmd.regMatch.group("duration")   is not None else 3
     quanity     = int(cmd.regMatch.group("quanity"))    if cmd.regMatch.group("quanity")    is not None else 1
-    autoaward   = cmd.regMatch.group("autoaward")       if cmd.regMatch.group("autoaward")  is not None else 0
-    
+    autoAward   = cmd.regMatch.group("autoAward")       if cmd.regMatch.group("autoAward")  is not None else False
+    autoAwardb  = (autoAward.lower() == "true") or (autoAward == "1")
     if cmdType == "pause":
         return AucMaster.PauseAuction(id)
     elif cmdType == "close":
         return AucMaster.CloseAuction(id)
     elif cmdType == "start":
-        return AucMaster.StartAuction(id,duration,quanity,autoaward)
+        return AucMaster.StartAuction(id,duration,quanity,autoAwardb)
     elif cmdType == "award":
         return AucMaster.AwardAuction(id)
     
@@ -71,11 +73,15 @@ def exEditAuc(cmd: botCommand) -> str:
 def exNewAuc(cmd: botCommand) -> str:
     switchOpts  = cmd.regMatch.group("switchOpts") if cmd.regMatch.group("switchOpts") is not None else ""
     itemsStr    = cmd.regMatch.group("items")
-    # items = itemsStr.split(|)    
+    items       = re.split(r'\s*\|\s*',itemsStr)
     duration    = float(cmd.regMatch.group("duration")) if cmd.regMatch.group("duration") is not None else 3
     quanity     = int(cmd.regMatch.group("quanity")) if cmd.regMatch.group("quanity") is not None else 1
-
-    return "Can't start new auction yet on " + itemsStr + " but options would be " + switchOpts + " duration " + duration.__str__() + " quantity " + quanity.__str__()
+    autoStart   = "s" in switchOpts
+    autoAward   = "a" in switchOpts
+    
+    if BotDebug:
+        return "Can't start new auction yet on " + itemsStr + " but options would be " + switchOpts + " duration " + duration.__str__() + " quantity " + quanity.__str__()
+    return AucMaster.AddAuction(items,duration,quanity,autoStart,autoAward)
 
 def exChan(cmd: botCommand) -> str:
     description = "Channel Set command configures where auctions will take place."
