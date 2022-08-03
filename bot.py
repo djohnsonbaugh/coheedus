@@ -57,7 +57,7 @@ def exEditAuc(cmd: botCommand) -> str:
     cmdType     = cmd.regMatch.group("cmdType").lower()
     duration    = float(cmd.regMatch.group("duration")) if cmd.regMatch.group("duration")   is not None else 3
     quanity     = int(cmd.regMatch.group("quanity"))    if cmd.regMatch.group("quanity")    is not None else 1
-    autoAward   = cmd.regMatch.group("autoAward")       if cmd.regMatch.group("autoAward")  is not None else False
+    autoAward   = cmd.regMatch.group("autoAward")       if cmd.regMatch.group("autoAward")  is not None else "False"
     autoAwardb  = (autoAward.lower() == "true") or (autoAward == "1")
     if cmdType == "pause":
         return AucMaster.PauseAuction(id)
@@ -109,7 +109,7 @@ def exDebug(cmd: botCommand) -> str:
 def exAdminHelp(cmd: botCommand) -> str:
     usage = "usage: !help <auc|chan|max|clear|debug|user>"
     catagory        = cmd.Params[1] if cmd.ParCount > 0 else ""
-    if catagory == user:
+    if catagory == "user":
         return exHelp(cmd)
     return usage + "Not Implemented"
 
