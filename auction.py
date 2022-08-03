@@ -14,7 +14,7 @@ class Auction(object):
         self.__autoaward:bool = autoaward
         self.__closed:bool = False
         self.__awarded:bool = False
-        self.__lastAnnouncement:datetime = None
+        self.__lastAnnouncement:datetime = datetime.min
         self.__timeleft:timedelta = timedelta(minutes=minutes)
         self.__lastNewBid:datetime = datetime.min
         return
@@ -26,7 +26,7 @@ class Auction(object):
     def BidCount(self)->int: return len(self.__bids)
     @property
     def MarginalBid(self)->int:
-        if(len(self.__winners) == 0): return 0
+        if(len(self.__winners) < self.ItemCount): return 1
         return self.__winners[len(self.__winners)-1].Bid
     @property
     def ItemCount(self)->int: return self.__itemcount

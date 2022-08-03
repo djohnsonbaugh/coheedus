@@ -120,7 +120,7 @@ class Bid(object):
 
     def Cancel(self):
         self.__canceled = True
-        self.QueNotification(Notification.Canceled)
+        self.__QueNotification(Notification.Canceled)
         return
 
     def Equals(self, bid:Bid)->bool:
@@ -150,9 +150,9 @@ class Bid(object):
 
 
 
-    def GetProxyNotificaiton(self)->str:
+    def GetProxyNotification(self)->str:
         self.__ClearNotification(Notification.ProxyBid)
-        return "Proxy Bid by " + bid.Sender + "->" + bid.ToStr
+        return "Proxy Bid by " + self.Sender + "->" + self.ToStr
 
     def GetNotificationAndClear(self) ->str:
         notif:str = ""
