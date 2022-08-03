@@ -55,16 +55,16 @@ def exEditAuc(cmd: botCommand) -> str:
     validChans = ["group","g","raid","rsay","guild","gu"]
     id          = int(cmd.regMatch.group("aucId"))
     cmdType     = cmd.regMatch.group("cmdType").lower()
-    duration    = float(cmd.regMatch.group("duration")) if cmd.regMatch.group("duration")   is not None else 3
-    quanity     = int(cmd.regMatch.group("quanity"))    if cmd.regMatch.group("quanity")    is not None else 1
+    duration    = float(cmd.regMatch.group("duration")) if cmd.regMatch.group("duration")   is not None else -1.0
+    quanity     = int(cmd.regMatch.group("quanity"))    if cmd.regMatch.group("quanity")    is not None else -1
     autoAward   = cmd.regMatch.group("autoAward")       if cmd.regMatch.group("autoAward")  is not None else "False"
-    autoAwardb  = (autoAward.lower() == "true") or (autoAward == "1")
+    autoAwardB  = (autoAward.lower() == "true") or (autoAward == "1")
     if cmdType == "pause":
         return AucMaster.PauseAuction(id)
     elif cmdType == "close":
         return AucMaster.CloseAuction(id)
     elif cmdType == "start":
-        return AucMaster.StartAuction(id,duration,quanity,autoAwardb)
+        return AucMaster.StartAuction(id,duration,quanity,autoAwardB)
     elif cmdType == "award":
         return AucMaster.AwardAuction(id)
     
