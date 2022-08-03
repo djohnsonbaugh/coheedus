@@ -16,7 +16,7 @@ class Auction(object):
         self.__awarded:bool = False
         self.__lastAnnouncement:datetime = None
         self.__timeleft:timedelta = timedelta(minutes=minutes)
-        self.__lastNewBid:datetime = datetime.min()
+        self.__lastNewBid:datetime = datetime.min
         return
     
     #PROPERTIES
@@ -49,11 +49,11 @@ class Auction(object):
     @property
     def TimeSinceLastAnnouncement(self)->timedelta: return datetime.now() - self.__lastAnnouncement
     @property
-    def TimeLeft(self)->timedelta: return self.__timeleft
+    def TimeLeft(self)->timedelta: return self.__timeleft if self.__timeleft > timedelta(0) else timedelta(0)
     @property
     def ToStr(self)->str: return self.__str__()
 
-    def __IsWinning(bid:Bid):
+    def __IsWinning(self, bid:Bid):
         for b in self.__winners:
             if b.ID == bid.ID:
                 return True
@@ -136,7 +136,7 @@ class Auction(object):
         
         #CANCEL BID
         if bid == 0:
-            if FindAcitveBidToCancel(bidder, bidsearch):
+            if self.FindAcitveBidToCancel(bidder, bidsearch):
                 bidsearch.Cancel()
                 return self.AddBidComplete(bidsearch)
             else:
@@ -145,7 +145,7 @@ class Auction(object):
         newbid:Bid = Bid(self.BidCount, self.__ID, sender, bidder, item, bid, max, increment)
 
         #CHECK IF THIS IS AN OVERRIDE
-        if FindEqualBid(newbid, bidsearch):
+        if self.FindEqualBid(newbid, bidsearch):
             if bidsearch.Disabled and not bidsearch.Overriden:
                 bidsearch.OverrideDisable()
                 return self.AddBidComplete(bidsearch)
@@ -160,23 +160,16 @@ class Auction(object):
         self.__timeleft += timedelta(seconds=10)
         return self.AddBidComplete(newbid)
 
-    def Announce(self)->str:
-        if self.__started:
-            self.__timeleft -= datetime.now() - self.__lastAnnouncement
-        else: self.__started = True
-        self.__lastAnnouncement = datetime.now()
-        return self.AnnounceStr
-
     def Pause(self):
         self.__started = False
         self.__scheduled = False
-        self.__lastAnnouncement = datetime.min()
+        self.__lastAnnouncement = datetime.min
         return
     
     def Close(self):
         self.__timeleft = timedelta(0)
-        self.__lastAnnouncement = datetime.min()
-        self.__lastNewBid = datetime.min()
+        self.__lastAnnouncement = datetime.min
+        self.__lastNewBid = datetime.min
 
     def Award(self):
         self.__autoaward = True
@@ -207,6 +200,8 @@ class Auction(object):
             self.__itemcount = itemcount
         self.__scheduled = True
         self.__started = False
+        self.__closed = False
+        self.__lastAnnouncement = datetime.min
         self.__autoaward = autoaward
         return
 
@@ -214,14 +209,14 @@ class Auction(object):
     def AuctionStr(self):
         aucstring: str = "[AucID:" + str(self.ID)
         aucstring += "] " + str(self.ItemCount)
-        aucstring += "x <<" + self.Item
+        aucstring += "x <<" + self.ItemName
         aucstring += ">> "
-        seconds = self.__timeleft.seconds
-        mintues = seconds // 60
+        seconds = self.TimeLeft.seconds
+        minutes = seconds // 60
         seconds -= minutes * 60
         aucstring += '{:02}:{:02}'.format(int(minutes), int(seconds))
         aucstring += " Bids: "
-        idstring += " [IDs:"
+        idstring = " [IDs:"
         if len(self.__winners) == 0: aucstring += "0"
         for i, bid in enumerate(list(self.__winners)):
             if i > 0: 
@@ -232,14 +227,23 @@ class Auction(object):
         aucstring += idstring + "]"
         return aucstring
 
+    def Announce(self)->str:
+        if self.__started:
+            self.__timeleft -= datetime.now() - self.__lastAnnouncement
+        else: 
+            self.__started = True
+            self.__Calculate()
+        self.__lastAnnouncement = datetime.now()
+        return self.AuctionStr
+
     @property
     def WinnerSummary(self):
         aucstring: str = "[AucID:" + str(self.ID)
         aucstring += "] " + str(self.ItemCount)
-        aucstring += "x <<" + self.Item
+        aucstring += "x <<" + self.ItemName
         aucstring += ">> "
         aucstring += " Winning: "
-        idstring += " ["
+        idstring = " ["
         if len(self.__winners) == 0: aucstring += "0"
         for i, bid in enumerate(list(self.__winners)):
             if i > 0: 
@@ -253,14 +257,14 @@ class Auction(object):
 
     def __str__(self):
         aucstring: str = "[AucID:" + self.ID.__str__()
-        aucstring += "] " + self.Item
+        aucstring += "] " + self.ItemName
         aucstring += " x" + self.ItemCount.__str__()
         return aucstring
 
     #DEBUG representation of Bid
     def __repr__(self):
         aucstring: str = "[" + self.ID.__str__()
-        aucstring += "] " + self.Item
+        aucstring += "] " + self.ItemName
         aucstring += " x" + self.ItemCount.__str__()
         return aucstring
 

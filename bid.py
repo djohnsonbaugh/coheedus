@@ -1,20 +1,23 @@
 from enum import Enum
+
+class Notification(Enum):
+    Incremented = 0
+    Losing = 1
+    Winning = 2
+    Disabled = 3
+    Overriden = 4
+    Canceled = 5
+    ProxyBid = 6
+
+class BidState(Enum):
+    Submitted = 0
+    Losing = 1
+    Winning = 2
+
 class Bid(object):
     """description of class"""
 
-    class Notification(Enum):
-        Incremented = 0,
-        Losing = 1,
-        Winning = 2,
-        Disabled = 3,
-        Overriden = 4,
-        Canceled = 5,
-        ProxyBid = 6
 
-    class BidState(Enum):
-        Submitted = 0,
-        Losing = 1,
-        Winning = 2
 
     def __init__(self,id:int, aucid:int, sender:str, bidder:str, item:str, bid:int, max: int, increment: int):
         self.__ID:int = id
@@ -36,6 +39,9 @@ class Bid(object):
             self.__QueNotification(Notification.ProxyBid)
         return
 
+
+    def __NotificationNeeded(self, notif:Notification)->bool:
+        return not self.__notified[notif.value]
     #PROPERTIES
     @property
     def ID(self)->int: return self.__ID
@@ -66,7 +72,7 @@ class Bid(object):
     @property
     def IsIncrementBid(self)->bool: return (self.__increment != 0)
     @property
-    def IsPreBid(self)->bool: return (self.___aucID < 0)
+    def IsPreBid(self)->bool: return (self.__aucID < 0)
     @property
     def Winning(self)->bool: return (self.__bidstate == BidState.Winning)
     @property
@@ -139,10 +145,9 @@ class Bid(object):
             self.__ClearNotification(Notification.Winning)
             self.__ClearNotification(Notification.Losing)
             self.__bidstate = newstate
-            self.__QueNotification(Notification[self.__bidstate])
+            self.__QueNotification(Notification(self.__bidstate.value))
 
-    def __NotificationNeeded(self, notif:Notification)->bool:
-        return self.__notified[notif.value]
+
 
     def GetProxyNotificaiton(self)->str:
         self.__ClearNotification(Notification.ProxyBid)
@@ -163,9 +168,9 @@ class Bid(object):
             if(self.__NotificationNeeded(Notification.Winning)): 
                 notif += "Winning->"
                 self.__ClearNotification(Notification.Winning)
-            if(self.__NotificationNeeded(Notification.Increment)): 
+            if(self.__NotificationNeeded(Notification.Incremented)): 
                 notif += "Auto Incremented->" + self.BidLast.__str__() + "->" + self.Bid.__str__()
-                self.__ClearNotification(Notification.Increment)
+                self.__ClearNotification(Notification.Incremented)
             if(self.__NotificationNeeded(Notification.Overriden)): 
                 notif += "Overbid Overriden->"
                 self.__ClearNotification(Notification.Overriden)

@@ -29,7 +29,7 @@ class openDKP(object):
         trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value]).text)["Models"]
         for row in trashjson:
             if(row["CharacterName"].lower() == name.lower()):
-                return float(row["CurrentDKP"]) if row["CurrentDKP"].isnumeric() else 10
+                return float(row["CurrentDKP"]) if row["CurrentDKP"] is not None else 10
         return 10
 
     def loadRaidTemplate(self):
