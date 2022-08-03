@@ -83,19 +83,21 @@ class Auction(object):
         return
 
     def __IncrementBids(self)->bool:
-        recaculate:bool = False
+        incremented:bool = False
         for bid in self.__bids:
-            if(bid.IsIncrementBid and bid.BidMax > self.MarginalBid):
+            if(bid.IsIncrementBid and bid.BidMax > self.MarginalBid and bid.Active):
                  if(not self.__IsWinning(bid)):
                      bid.IncrementBid(self.MarginalBid)
-        return recaculate
+                     incremented = True
+        return incremented
 
     def __Calculate(self):
         while True:
             self.__CalculateWinners()
             if(not self.__IncrementBids()): break
         for bid in self.__bids:
-            bid.Winning = self.__IsWinning(bid)
+            if bid.Active:
+                bid.Winning = self.__IsWinning(bid)
         return
 
     def AddBidComplete(self, bid:Bid)->str:
@@ -117,26 +119,28 @@ class Auction(object):
                 bids.append(b)
         return bids
     
-    def FindEqualBid(self, bid:Bid, bidsearch:Bid)->bool:
+    def FindEqualBid(self, bid:Bid)->Bid:
+        bidsearch:Bid = None
         for b in reversed(self.__bids):
             if bid.Equals(b):
                 bidsearch = b
-                return True 
-        return False
+                break 
+        return bidsearch
 
-    def FindAcitveBidToCancel(self, bidder:str, bidsearch:Bid)->bool:
+    def FindAcitveBidToCancel(self, bidder:str)->Bid:
+        bidsearch:Bid = None
         for b in reversed(self.__bids):
             if b.Bidder == bidder and b.Active:
                 bidsearch = b
-                return True
-        return False
+                break
+        return bidsearch
 
     def AddBid(self, sender:str, bidder:str, item:str, bidderdkp:float, bid:int, max: int, increment: int)->str:
-        bidsearch:Bid = None       
-        
+        bidsearch:Bid = None
         #CANCEL BID
         if bid == 0:
-            if self.FindAcitveBidToCancel(bidder, bidsearch):
+            bidsearch = self.FindAcitveBidToCancel(bidder)
+            if bidsearch is not None:
                 bidsearch.Cancel()
                 return self.AddBidComplete(bidsearch)
             else:
@@ -145,7 +149,8 @@ class Auction(object):
         newbid:Bid = Bid(self.BidCount, self.__ID, sender, bidder, item, bid, max, increment)
 
         #CHECK IF THIS IS AN OVERRIDE
-        if self.FindEqualBid(newbid, bidsearch):
+        bidsearch = self.FindEqualBid(newbid)
+        if bidsearch is not None:
             if bidsearch.Disabled and not bidsearch.Overriden:
                 bidsearch.OverrideDisable()
                 return self.AddBidComplete(bidsearch)
@@ -182,16 +187,16 @@ class Auction(object):
     def AnnounceAward(self)->[str]:
         wins:[str] = []
         for bid in self.__winners:
-            wins.append("Winner - " + self.__item + " - " + self.MarginalBid + " - " + bid.Bidder)
+            wins.append("Winner - " + self.__item + " - " + str(self.MarginalBid) + " - " + bid.Bidder)
         self.__awarded = True
-        return
+        return wins
 
     def UnAward(self)->[str]:
         wins:[str] = []
         for bid in self.__winners:
-            wins.append("Winner - " + self.__item + " - " + 0 + " - " + bid.Bidder)
+            wins.append("Winner - " + self.__item + " - " + "0" + " - " + bid.Bidder)
         self.__awarded = False
-        return 
+        return wins
 
     def Update(self, itemcount:int=-1, minutes:float=-1, autostart:bool=False, autoaward:bool=False):
         if(minutes > 0):

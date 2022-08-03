@@ -37,19 +37,20 @@ class Auctioneer(object):
     @MaxActiveAuctions.setter
     def MaxActiveAuctions(self,value:int): self.__maxaucs = value
 
-    def FindUnClosedAuction(self, itemname:str, auctionsearch:Auction)->bool:
+    def FindUnClosedAuction(self, itemname:str)->Auction:
+        auctionsearch:Auction = None
         for a in self.__auctions.values():
             if a.ItemName == itemname and not a.Closed:
                 auctionsearch = a
-                return True
-        return False
+                break
+        return auctionsearch
 
     def AddAuction(self, items:[str], minutes: float=3.0, itemcount: int=1, autostart:bool=False, autoaward:bool=False)->str:
         updatedbids = ""
         #CHECK IF THIS AUCTION EXISTS ALREADY
         for i,item in enumerate(list(items)):
-            auctionsearch:Auction = None
-            if self.FindUnClosedAuction(item, auctionsearch):
+            auctionsearch:Auction = self.FindUnClosedAuction(item)
+            if auctionsearch is not None:
                 auctionsearch.Update(itemcount, minutes,autostart,autoaward)
                 if(len(items) == 1):
                     return "Updated Auction->" + auctionsearch.ToStr
@@ -65,14 +66,14 @@ class Auctioneer(object):
     def AddBid(self, aucid:int, sender:str, bidder:str, item:str, bidderdkp:float, bid:int, max: int, increment: int)->str:
         if aucid == -1:
             #CHECK IF THIS AUCTION EXISTS ALREADY
-            auctionsearch:Auction = None
-            if self.FindUnClosedAuction(item, auctionsearch):
+            auctionsearch:Auction = self.FindUnClosedAuction(item)
+            if auctionsearch is not None:
                 aucid = auctionsearch.ID
             else:
                 aucid = len(self.__auctions)
                 self.SendAdminMessage(self.AddAuction([item]))
         if aucid in self.__auctions.keys():
-            if self.__auctions[aucid].Closed: return "Auction[" + aucid + "] is closed."
+            if self.__auctions[aucid].Closed: return "Auction[" + str(aucid) + "] is closed."
             else: return self.__auctions[aucid].AddBid(sender, bidder, item, bidderdkp, bid, max, increment)
         return "Auction[" + str(aucid) + "] does not exist."
 
@@ -114,7 +115,7 @@ class Auctioneer(object):
     def __getAvailableAuctions(self)->[Auction]:
         auctions:[Auction] = []
         for auction in self.__auctions.values():
-            if not auction.Closed and auction.Scheduled:
+            if not (auction.Closed and auction.Awarded) and auction.Scheduled:
                 auctions.append(auction)
         return auctions
 
@@ -159,13 +160,13 @@ class Auctioneer(object):
                     message = "Bids:" if auction.TimeLeft > zero else "LAST CALL:"
                     self.SendAuctionMessage(message + auction.Announce())
                 else:
-                    if auction.TimeLeft <= zero:
+                    if auction.TimeLeft <= zero and auction.TimeSinceLastBid > shortwait:
                         if not auction.Closed:
                             self.SendAuctionMessage(auction.AnnounceClosed())
                             self.SendAdminMessage("Ready To Award:" + auction.WinnerSummary)
                         else:
                             if auction.ReadyToAward:
-                                for message in auction.Award():
+                                for message in auction.AnnounceAward():
                                     self.SendAuctionMessage(message)
 
         return

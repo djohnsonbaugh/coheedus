@@ -92,19 +92,21 @@ class Bid(object):
         return False
     @property
     def Disabled(self)->bool: return self.__disabled
+    @property
     def Overriden(self)->bool: return self.__override
 
     def Disable(self): 
         self.__disabled = True
-        self.QueNotification(Notification.Disabled)
+        self.__QueNotification(Notification.Disabled)
         return
+
     def OverrideDisable(self): 
         self.__disabled = False
         self.__override = True
-        self.QueNotification(Notification.Overrided)
+        self.__QueNotification(Notification.Overriden)
         return
 
-    def __getNextPrime(lowbid: int):
+    def __getNextPrime(self,lowbid: int)->int:
         if(lowbid % 2 == 0): lowbid -= 1
         prime:bool = False
         while not prime:
@@ -114,7 +116,6 @@ class Bid(object):
                 if(lowbid % i == 0):
                     prime = False
                     break
-
         return lowbid
 
     def Cancel(self):
@@ -177,14 +178,20 @@ class Bid(object):
         notif += " " + self.ToStr
         return notif
 
+    def returnjunk()->int:
+        return 4
+
     def IncrementBid(self, lowbid:int)->bool:
         if(lowbid >= self.BidMax): return False
         #Save last bid since last notification
         if not self.__NotificationNeeded(Notification.Incremented): self.__bidLast = self.Bid
         #Update Bid
-        self.__bid = min(self.BidMax, self.__getNextPrime(lowbid) if self.Increment == -1 else lowbid + self.Increment)
+        if(self.__increment == -1):
+            self.__bid = min(self.BidMax, self.__getNextPrime(lowbid))
+        else:
+            self.__bid = min(self.BidMax, lowbid + self.Increment)
         #Que Notification
-        self.QueNotification(Notification.Incremented)
+        self.__QueNotification(Notification.Incremented)
         return True
 
     #[PreBid bidID:-18] Girdle of the Fleet @ 10 for Dwendrox
