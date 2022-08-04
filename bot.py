@@ -24,7 +24,7 @@ def exBid(cmd: botCommand) ->str:
     sender  = cmd.Sender
     bidVal  = int(cmd.regMatch.group("bidVal"))
     bidMax  = int(cmd.regMatch.group("bidMax"))     if cmd.regMatch.group("bidMax")     is not None else bidVal
-    bidInc  = int(cmd.regMatch.group("bidInc"))     if cmd.regMatch.group("bidInc")     is not None else 1
+    bidInc  = int(cmd.regMatch.group("bidInc"))     if cmd.regMatch.group("bidInc")     is not None else 0
     bidder  =     cmd.regMatch.group("proxyToon")   if cmd.regMatch.group("proxyToon")  is not None else sender
     if BotDebug:
         if aucId > 0:
@@ -43,17 +43,26 @@ def exDKP(cmd: botCommand) -> str:
     return dkp.__str__() + " DKP for " + name
 
 def exHelp(cmd: botCommand) -> str:
-    usage = "usage: !help <bid|dkp>"
-    name        = cmd.Params[1] if cmd.ParCount > 0 else ""
+    usage = "Usage: !help <bid|dkp|status>"
+    validParam = ["bid","dkp","status"]
+    catagory = cmd.Params[1] if cmd.ParCount > 0 else ""
+    if   catagory == "bid":
+        return "dont ask me bid i dont know what to do yet"
+    elif catagory == "dkp":
+        return "dont ask me about dkp i dont know what to do yet"
+    elif catagory == "status":
+        return "dont ask me about status i dont know what to do yet"
     
     return usage + "Not Implemented"
-
+def exStatus(cmd: botCommand) -> str:
+    usage = "Status"
+    return usage + "Not Implemented"
 # ADMIN COMMANDS
 def exEditAuc(cmd: botCommand) -> str:
     description = "Admin command starting with !<id> are editing existing auctions"
     usage = "usage: !<id> <pause|close|start|award>"
     validChans = ["group","g","raid","rsay","guild","gu"]
-    id          = int(cmd.regMatch.group("aucId"))
+    id          = int(cmd.regMatch.group("aucId"))      if cmd.regMatch.group("aucID").lower()  is not "all" else -300
     cmdType     = cmd.regMatch.group("cmdType").lower()
     duration    = float(cmd.regMatch.group("duration")) if cmd.regMatch.group("duration")   is not None else -1.0
     quanity     = int(cmd.regMatch.group("quanity"))    if cmd.regMatch.group("quanity")    is not None else -1
@@ -67,6 +76,8 @@ def exEditAuc(cmd: botCommand) -> str:
         return AucMaster.StartAuction(id,duration,quanity,autoAwardB)
     elif cmdType == "award":
         return AucMaster.AwardAuction(id)
+    elif cmdType == "cancel":
+        return AucMaster.CancelAuction(id)
     
     return "Auctions do not exist yet therefore i cannot " + cmdType + " them"
 
@@ -97,10 +108,11 @@ def exChan(cmd: botCommand) -> str:
         return "Auction channel currently set to: " + AucMaster.AuctionChannel
 
 def exClear(cmd: botCommand) -> str:
-    usage = "Clear command deletes all auctions and bids closed active and pending. usage: \"!clear\""
+    description = "Clear command deletes all auctions and bids closed active and pending. "
+    usage = "Usage: \"!clear\""
     AucMaster.ClearAuctionsAndBids()
     return "Nuked it ALL, start over. GL"
-
+    
 def exDebug(cmd: botCommand) -> str:
     global BotDebug
     BotDebug = not BotDebug
@@ -111,7 +123,20 @@ def exAdminHelp(cmd: botCommand) -> str:
     catagory        = cmd.Params[1] if cmd.ParCount > 0 else ""
     if catagory == "user":
         return exHelp(cmd)
-    return usage + "Not Implemented"
+    if   catagory == "auc":
+        return "dont ask me auc i dont know what to do yet"
+    if   catagory == "chan":
+        return "dont ask me chan i dont know what to do yet"
+    if   catagory == "max":
+        return "dont ask me max i dont know what to do yet"
+    if   catagory == "clear":
+        return "dont ask me clear i dont know what to do yet"
+    if   catagory == "debug":
+        return "dont ask me debug i dont know what to do yet"
+    if   catagory == "chan":
+        return "dont ask me auc i dont know what to do yet"
+    
+    return usage + "Not a command"
 
 def exMax(cmd: botCommand) -> str:
     description = "Max command sets the number of concurrent auction"
@@ -133,6 +158,7 @@ cmdRegistration = {
         "ADMIN"                     : exAdmin,
         "DKP"                       : exDKP,
         "HELP"                      : exHelp,
+        "STATUS"                    : exStatus,
         regexHelper.bidWithIDPtrn   : exBid,
         regexHelper.bidWithItemPtrn : exBid
     },
