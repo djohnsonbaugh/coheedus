@@ -85,7 +85,7 @@ Usages['help'] = \
 "w: means that parameter is a single word\n"+\
 "s: means that parameter is a string matching everything except the symbol after listed after the parameter\n"+\
 "{} means one of the options inside the brakets are required\n"+\
-"[] means this parameter is optional. If there are multiple optional parameters in a row of the same type to use one all preceeding must be present\n"
+"[] means this parameter is optional. If there are multiple optional parameters in a row of the same type to use one all preceeding must be present"
 def exHelp(cmd: botCommand) -> str:
     
     catagory = cmd.Params[1] if cmd.ParCount > 0 else None
@@ -131,7 +131,7 @@ AdminUsages['auc'] = \
 "-a will set the auction to auto award the winner when time runs out.\n"+\
 "For multiple - options do no use more than one -. Example: -sa\n"+\
 "For multiple items separate item links by | and list all before the @ symbol\n"+\
-"Duration will accept decimals, but must start with a digit. To have time less than 1 preceed the decimal with a 0\n"
+"Duration will accept decimals, but must start with a digit. To have time less than 1 preceed the decimal with a 0"
 def exNewAuc(cmd: botCommand) -> str:
     switchOpts  = cmd.regMatch.group("switchOpts") if cmd.regMatch.group("switchOpts") is not None else ""
     itemsStr    = cmd.regMatch.group("items")
