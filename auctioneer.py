@@ -18,8 +18,8 @@ class Auctioneer(object):
     def SendAdminMessage(self, message:str):
         eqApp.sendMessage(self.__adminchan, message)
         return
-    def NotifyBidder(self, bid:Bid):
-        eqApp.tell(bid.Sender, bid.GetNotificationAndClear())
+    def NotifyBidder(self, bid:Bid, marginalbid:int):
+        eqApp.tell(bid.Sender, bid.GetNotificationAndClear(marginalbid))
     def NotifyProxyBidder(self, bid:Bid):
         eqApp.tell(bid.Bidder, bid.GetProxyNotification())
 
@@ -74,7 +74,7 @@ class Auctioneer(object):
                 self.SendAdminMessage(self.AddAuction([item]))
         if aucid in self.__auctions.keys():
             if self.__auctions[aucid].Closed: return "Auction[" + str(aucid) + "] is closed."
-            else: return self.__auctions[aucid].AddBid(sender, bidder, item, bidderdkp, bid, max, increment)
+            else: return self.__auctions[aucid].AddBid(sender, bidder, self.__auctions[aucid].ItemName, bidderdkp, bid, max, increment)
         return "Auction[" + str(aucid) + "] does not exist."
 
     def StartAuction(self, aucid:int, minutes: float=-1.0, itemcount: int=-1, autoaward:bool=False)->str:
@@ -133,7 +133,7 @@ class Auctioneer(object):
         #NOTIFY BIDDERS
         for auction in self.__auctions.values():
             for bid in auction.GetBidNotifications():
-                self.NotifyBidder(bid)
+                self.NotifyBidder(bid, auction.MarginalBid)
         
         #UNAWARD RESTARTED AUCTIONS
         for auction in self.__auctions.values():
@@ -145,7 +145,10 @@ class Auctioneer(object):
         for auction in self.__getAvailableAuctions():
             if auctioncount < self.__maxaucs or auction.Active:
                 if not auction.Active:
-                    self.SendAuctionMessage("=====NEW AUCTION STARTING <<" + auction.ItemName + ">>=====")
+                    if auction.Restarted:
+                        self.SendAuctionMessage("=====RESTARTING AUCTION <<" + auction.ItemName + ">>=====")
+                    else:
+                        self.SendAuctionMessage("=====NEW AUCTION STARTING <<" + auction.ItemName + ">>=====")
                     auctioncount += 1
                 if (
                     #NEW BID DELAY
@@ -157,7 +160,7 @@ class Auctioneer(object):
                     #LAST CALL AUCTION
                     (auction.TimeLeft <= zero and auction.TimeSinceLastBid < shortwait and auction.TimeSinceLastAnnouncement > microwait)
                     ):
-                    message = "Bids:" if auction.TimeLeft > zero else "LAST CALL:"
+                    message = "Accepting Bids - " if auction.TimeLeft > zero else "LAST CALL:"
                     self.SendAuctionMessage(message + auction.Announce())
                 else:
                     if auction.TimeLeft <= zero and auction.TimeSinceLastBid > shortwait:

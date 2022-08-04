@@ -13,6 +13,7 @@ class Auction(object):
         self.__started:bool = False
         self.__autoaward:bool = autoaward
         self.__closed:bool = False
+        self.__restarted:bool = False
         self.__awarded:bool = False
         self.__lastAnnouncement:datetime = datetime.min
         self.__timeleft:timedelta = timedelta(minutes=minutes)
@@ -34,6 +35,8 @@ class Auction(object):
     def ItemName(self)->str: return self.__item
     @property
     def Closed(self)->bool: return self.__closed
+    @property
+    def Restarted(self)->bool: return self.__restarted
     @property
     def Awarded(self)->bool: return self.__awarded
     @property
@@ -103,7 +106,7 @@ class Auction(object):
     def AddBidComplete(self, bid:Bid)->str:
         if self.__scheduled:
             self.__Calculate()
-        return bid.GetNotificationAndClear()
+        return bid.GetNotificationAndClear(self.MarginalBid)
 
     def GetProxyBidNotifications(self)->[Bid]:
         bids:[Bid] = []
@@ -144,7 +147,7 @@ class Auction(object):
                 bidsearch.Cancel()
                 return self.AddBidComplete(bidsearch)
             else:
-                return "No active bids by " + newbid.Bidder + " for item " + self.__item + " were found to cancel."
+                return "No active bids by " + bidder + " for item " + self.__item + " were found to cancel."
 
         newbid:Bid = Bid(self.BidCount, self.__ID, sender, bidder, item, bid, max, increment)
 
@@ -203,11 +206,14 @@ class Auction(object):
             self.__timeleft = timedelta(minutes=minutes)
         if(itemcount >0):
             self.__itemcount = itemcount
+        if(autoaward is not None):
+            self.__autoaward = autoaward
+        if(self.Awarded):
+            self.__restarted = True
         self.__scheduled = True
         self.__started = False
         self.__closed = False
-        self.__lastAnnouncement = datetime.min
-        self.__autoaward = autoaward
+        self.__lastAnnouncement = datetime.min       
         return
 
     @property
@@ -220,7 +226,7 @@ class Auction(object):
         minutes = seconds // 60
         seconds -= minutes * 60
         aucstring += '{:02}:{:02}'.format(int(minutes), int(seconds))
-        aucstring += " Bids: "
+        aucstring += " Winning: "
         idstring = " [IDs:"
         if len(self.__winners) == 0: aucstring += "0"
         for i, bid in enumerate(list(self.__winners)):
@@ -243,7 +249,7 @@ class Auction(object):
 
     @property
     def WinnerSummary(self):
-        aucstring: str = "[AucID:" + str(self.ID)
+        aucstring: str = "[Auc:" + str(self.ID)
         aucstring += "] " + str(self.ItemCount)
         aucstring += "x <<" + self.ItemName
         aucstring += ">> "
@@ -261,7 +267,7 @@ class Auction(object):
 
 
     def __str__(self):
-        aucstring: str = "[AucID:" + self.ID.__str__()
+        aucstring: str = "[Auc:" + self.ID.__str__()
         aucstring += "] " + self.ItemName
         aucstring += " x" + self.ItemCount.__str__()
         return aucstring

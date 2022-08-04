@@ -48,6 +48,8 @@ class Bid(object):
     @property
     def AucID(self)->int: return self.__aucID
     @property
+    def ProxyBid(self)->bool: return (self.__bidder != self.__sender) 
+    @property
     def Sender(self)->str: return self.__sender
     @property
     def Active(self)->bool: return not self.__canceled and not self.__disabled
@@ -70,7 +72,7 @@ class Bid(object):
     @property
     def IncrementStr(self)->str: return "Primes" if (self.Increment == -1) else self.Increment.__str__()
     @property
-    def IsIncrementBid(self)->bool: return (self.__increment != 0)
+    def IsIncrementBid(self)->bool: return (self.__increment != 0 and self.__bidMin > self.__bidMax)
     @property
     def IsPreBid(self)->bool: return (self.__aucID < 0)
     @property
@@ -154,7 +156,7 @@ class Bid(object):
         self.__ClearNotification(Notification.ProxyBid)
         return "Proxy Bid by " + self.Sender + "->" + self.ToStr
 
-    def GetNotificationAndClear(self) ->str:
+    def GetNotificationAndClear(self, marginalbid:int) ->str:
         notif:str = ""
         if(self.__NotificationNeeded(Notification.Disabled)): 
             notif += "Bid Disabled Due to Overbid, Repeat Bid To Override->"
@@ -164,7 +166,7 @@ class Bid(object):
             self.__ClearNotification(Notification.Canceled)
         else:
             if(self.__NotificationNeeded(Notification.Losing)): 
-                notif += "OUTBID!->"
+                notif += "OUTBID[" + str(marginalbid) + "]!->"
                 self.__ClearNotification(Notification.Losing)
             if(self.__NotificationNeeded(Notification.Winning)): 
                 notif += "Winning->"
@@ -199,11 +201,12 @@ class Bid(object):
     #[PreBid bidID:-2] Ring of Ire Intent @ 5 for Bigrax up to 20 by 3
     def __str__(self):
         bidstring: str = "["
-        bidstring += "PreBid" if self.IsPreBid else "AucID:" + self.AucID.__str__()
-        bidstring += " BidID:" + self.ID.__str__()
-        bidstring += "] " + self.Item + " @ "
+        bidstring += "Auc:" + self.AucID.__str__()
+        bidstring += " Bid:" + self.ID.__str__()
+        bidstring += "] on <<" + self.Item + ">> @ "
         bidstring += self.Bid.__str__()
-        bidstring += " for " + self.Bidder
+        if(self.ProxyBid):
+            bidstring += " for " + self.Bidder
         if(self.IsIncrementBid):
             bidstring += " up to " + self.BidMax.__str__()
             bidstring += " by " + self.IncrementStr
@@ -215,7 +218,7 @@ class Bid(object):
         bidstring: str = "["
         bidstring += self.AucID.__str__()
         bidstring += "," + self.ID.__str__()
-        bidstring += "]" + self.Item + "@"
+        bidstring += "] on " + self.Item + "@"
         bidstring += self.Bid.__str__()
         if(self.IsIncrementBid):
             bidstring += "->" + self.BidMax.__str__()
