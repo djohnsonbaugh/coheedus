@@ -122,8 +122,8 @@ def pushKey(keypress: winKey, shift: bool=False, ctrl: bool=False, alt: bool=Fal
 def getActiveWindow() -> str:
     return win32gui.GetWindowText(win32gui.GetForegroundWindow())
 
-def getWindowHandles(name:str) -> [int]:
-    hwnds:[int] = []
+def getWindowHandles(name:str):
+    hwnds = []
     def findhwnd(hwnd,ctx):
         if win32gui.GetWindowText(hwnd) == name: # check the title
             hwnds.append(hwnd)
@@ -131,15 +131,15 @@ def getWindowHandles(name:str) -> [int]:
     win32gui.EnumWindows(findhwnd,None)
     return hwnds
 
-def actviateFirstWindow(name:str) -> bool:
-    for hwnd in getWindowHandles(name):
-        return activateWindow(hwnd)
-
 def activateWindow(hwnd:int) ->bool:
     try:
         return win32gui.SetForegroundWindow(hwnd)
     except:
         return False
+
+def actviateFirstWindow(name:str) -> bool:
+    for hwnd in getWindowHandles(name):
+        return activateWindow(hwnd)
 
 def toggleWindowForFunction(winName:str, func, arg):
     hwnd:int = win32gui.GetForegroundWindow()
