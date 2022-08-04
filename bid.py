@@ -202,7 +202,7 @@ class Bid(object):
     def __str__(self):
         bidstring: str = "["
         bidstring += "Auc:" + self.AucID.__str__()
-        bidstring += " Bid:" + self.ID.__str__()
+        bidstring += " ID:" + self.ID.__str__()
         bidstring += "] on <<" + self.Item + ">> @ "
         bidstring += self.Bid.__str__()
         if(self.ProxyBid):

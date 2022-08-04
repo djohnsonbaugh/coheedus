@@ -62,7 +62,7 @@ def exEditAuc(cmd: botCommand) -> str:
     description = "Admin command starting with !<id> are editing existing auctions"
     usage = "usage: !<id> <pause|close|start|award>"
     validChans = ["group","g","raid","rsay","guild","gu"]
-    id          = int(cmd.regMatch.group("aucId"))      if cmd.regMatch.group("aucID").lower()  is not "all" else -300
+    id          = int(cmd.regMatch.group("aucId"))      if cmd.regMatch.group("aucId").lower()  != "all" else -300
     cmdType     = cmd.regMatch.group("cmdType").lower()
     duration    = float(cmd.regMatch.group("duration")) if cmd.regMatch.group("duration")   is not None else -1.0
     quanity     = int(cmd.regMatch.group("quanity"))    if cmd.regMatch.group("quanity")    is not None else -1

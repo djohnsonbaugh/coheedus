@@ -44,7 +44,11 @@ class Auction(object):
     @property
     def Active(self)->bool: return self.__started and not (self.__closed and self.__awarded)
     @property
+    def Closable(self)->bool: return self.__started and not self.__closed
+    @property
     def Scheduled(self)->bool: return self.__scheduled
+    @property
+    def ReadToSchedule(self)->bool: return not self.__scheduled and not self.__closed
     @property
     def LastNewBidTime(self)->datetime: return self.__lastNewBid
     @property
@@ -179,8 +183,8 @@ class Auction(object):
         self.__lastAnnouncement = datetime.min
         self.__lastNewBid = datetime.min
 
-    def Award(self):
-        self.__autoaward = True
+    def Award(self, autoaward:bool=True):
+        self.__autoaward = autoaward if autoaward is not None else True
         return
 
     def AnnounceClosed(self)->str:
@@ -210,7 +214,7 @@ class Auction(object):
             self.__autoaward = autoaward
         if(self.Awarded):
             self.__restarted = True
-        self.__scheduled = True
+        self.__scheduled = autostart
         self.__started = False
         self.__closed = False
         self.__lastAnnouncement = datetime.min       
@@ -218,7 +222,7 @@ class Auction(object):
 
     @property
     def AuctionStr(self):
-        aucstring: str = "[AucID:" + str(self.ID)
+        aucstring: str = "[Auc:" + str(self.ID)
         aucstring += "] " + str(self.ItemCount)
         aucstring += "x <<" + self.ItemName
         aucstring += ">> "

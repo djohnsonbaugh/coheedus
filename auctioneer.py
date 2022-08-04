@@ -10,6 +10,7 @@ class Auctioneer(object):
         self.__adminchan = ""
         self.__maxaucs = maxactiveauctions
         self.__auctions:{int,Auction} = {}
+        self.__auccount = 0
 
         return
     def SendAuctionMessage(self, message:str):
@@ -24,6 +25,8 @@ class Auctioneer(object):
         eqApp.tell(bid.Bidder, bid.GetProxyNotification())
 
     @property
+    def IDAll(self)->int: return -300
+    @property
     def AuctionChannel(self)->str: return self.__aucchan
     @AuctionChannel.setter
     def AuctionChannel(self,value:str): self.__aucchan = value
@@ -36,6 +39,10 @@ class Auctioneer(object):
     def MaxActiveAuctions(self)->int: return self.__maxaucs
     @MaxActiveAuctions.setter
     def MaxActiveAuctions(self,value:int): self.__maxaucs = value
+
+    def __GetNextAucID(self)->int:
+        self.__auccount += 1
+        return self.__auccount - 1
 
     def FindUnClosedAuction(self, itemname:str)->Auction:
         auctionsearch:Auction = None
@@ -54,14 +61,17 @@ class Auctioneer(object):
                 auctionsearch.Update(itemcount, minutes,autostart,autoaward)
                 if(len(items) == 1):
                     return "Updated Auction->" + auctionsearch.ToStr
-                if(i>0): updatebids += ","
-                upatedbids += str(auctionsearch.ID)
-            #ADD NEW AUCTION
-            id = len(self.__auctions)
-            self.__auctions[id] = Auction(id,item,itemcount,minutes,autostart,autoaward)
-            if(len(items) == 1):
-                return "Created Auction->" + self.__auctions[id].ToStr
-        return "Auctions Modified [" + updatedbids + "]"
+                if(updatedbids != ""): updatedbids += ","
+                updatedbids += str(auctionsearch.ID)
+            else:
+                #ADD NEW AUCTION
+                id = self.__GetNextAucID()
+                self.__auctions[id] = Auction(id,item,itemcount,minutes,autostart,autoaward)
+                if(len(items) == 1):
+                    return "Created Auction->" + self.__auctions[id].ToStr
+                if(updatedbids != ""): updatedbids += ","
+                updatedbids += str(id)
+        return "Auctions Created or Updated [" + updatedbids + "]"
 
     def AddBid(self, aucid:int, sender:str, bidder:str, item:str, bidderdkp:float, bid:int, max: int, increment: int)->str:
         if aucid == -1:
@@ -70,36 +80,106 @@ class Auctioneer(object):
             if auctionsearch is not None:
                 aucid = auctionsearch.ID
             else:
-                aucid = len(self.__auctions)
+                aucid = self.__auccount
                 self.SendAdminMessage(self.AddAuction([item]))
         if aucid in self.__auctions.keys():
             if self.__auctions[aucid].Closed: return "Auction[" + str(aucid) + "] is closed."
             else: return self.__auctions[aucid].AddBid(sender, bidder, self.__auctions[aucid].ItemName, bidderdkp, bid, max, increment)
         return "Auction[" + str(aucid) + "] does not exist."
 
-    def StartAuction(self, aucid:int, minutes: float=-1.0, itemcount: int=-1, autoaward:bool=False)->str:
+    def __StartAuction(self, aucid:int, minutes: float=-1.0, itemcount: int=-1, autoaward:bool=False)->str:
         if aucid in self.__auctions.keys():
             self.__auctions[aucid].Update(itemcount, minutes,True,autoaward)
             return "Auction[" + str(aucid) + "] scheduled to begin."
         return "Auction[" + str(aucid) + "] does not exist."
 
-    def CloseAuction(self, aucid:int)->str:
+    def StartAuction(self, aucid:int, minutes: float=-1.0, itemcount: int=-1, autoaward:bool=False)->str:
+        if aucid == self.IDAll:
+            ids:str = ""
+            for auction in self.__auctions.values():
+                if auction.ReadToSchedule:
+                    ids += "" if ids == "" else ","
+                    ids += str(auction.ID)
+                    self.__StartAuction(auction.ID,minutes,itemcount,autoaward)
+            return "Auctions[" + ids + "] scheduled to begin."
+        else:
+            return self.__StartAuction(aucid,minutes,itemcount,autoaward)
+
+    def __CloseAuction(self, aucid:int)->str:
         if aucid in self.__auctions.keys():
             self.__auctions[aucid].Close()
             return "Auction[" + str(aucid) + "] Closing..."
         return "Auction[" + str(aucid) + "] does not exist."
 
-    def PauseAuction(self, aucid:int)->str:
+    def CloseAuction(self, aucid:int)->str:
+        if aucid == self.IDAll:
+            ids:str = ""
+            for auction in self.__auctions.values():
+                if auction.Closable:
+                    ids += "" if ids == "" else ","
+                    ids += str(auction.ID)
+                    self.__CloseAuction(auction.ID)
+            return "Auctions[" + ids + "] Closing..."
+        else:
+            return self.__CloseAuction(aucid)
+
+    def __PauseAuction(self, aucid:int)->str:
         if aucid in self.__auctions.keys():
             self.__auctions[aucid].Pause()
             return "Auction[" + str(aucid) + "] Pausing..."
         return "Auction[" + str(aucid) + "] does not exist."
 
-    def AwardAuction(self, aucid:int)->str:
+    def PauseAuction(self, aucid:int)->str:
+        if aucid == self.IDAll:
+            ids:str = ""
+            for auction in self.__auctions.values():
+                if auction.Closable:
+                    ids += "" if ids == "" else ","
+                    ids += str(auction.ID)
+                    self.__PauseAuction(auction.ID)
+            return "Auctions[" + ids + "] Pausing..."
+        else:
+            return self.__PauseAuction(aucid)
+
+    def __AwardAuction(self, aucid:int, autoaward:bool=True)->str:
         if aucid in self.__auctions.keys():
-            self.__auctions[aucid].Award()
-            return "Auction[" + str(aucid) + "] Awarding..."
+            self.__auctions[aucid].Award(autoaward)
+            return "Auction[" + str(aucid) + "] have updated auto award status."
         return "Auction[" + str(aucid) + "] does not exist."
+
+    def AwardAuction(self, aucid:int, autoaward:bool=True)->str:
+        if aucid == self.IDAll:
+            ids:str = ""
+            for auction in self.__auctions.values():
+                if not (auction.Awarded and auction.Closed):
+                    ids += "" if ids == "" else ","
+                    ids += str(auction.ID)
+                    self.__AwardAuction(auction.ID,autoaward)
+            return "Auctions[" + ids + "] have updated auto award status."
+        else:
+            return self.__AwardAuction(aucid, autoaward)
+
+    def __CancelAuction(self, aucid:int)->str:
+        if aucid in self.__auctions.keys():
+            self.__auctions.pop(aucid)
+            return "Auction[" + str(aucid) + "] has been canceled."
+        return "Auction[" + str(aucid) + "] does not exist."
+
+    def CancelAuction(self, aucid:int)->str:
+        if aucid == self.IDAll:
+            idsstr:str = ""
+            ids:[int] = []
+            for auction in self.__auctions.values():
+                if not (auction.Awarded and auction.Closed):
+                    ids.append(auction.ID)
+            for id in ids:
+                idsstr += "" if idsstr == "" else ","
+                idsstr += str(id)
+                self.__CancelAuction(id)
+            return "Auctions[" + idsstr + "] have been canceled."
+        else:
+            return self.__CancelAuction(aucid)
+
 
     def ClearAuctionsAndBids(self)->str:
         self.__auctions = {}
