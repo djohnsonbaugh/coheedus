@@ -12,14 +12,36 @@ def initConfig(config: appConfig):
     oDKP = openDKP(config)
     return
 
+AucMaster:Auctioneer = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3)
 BotDebug:bool   = False
 Usages = {}
+AdminUsages = {}
+
+# RAID STRAT
+RaidStrats = {}
 
 
-AucMaster:Auctioneer = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3)
+
 
 # NORMAL COMMANDS
-Usages['bid'] = "Usage: !{#id|item link @} #initial [#max=0] [#increment=0] [toon name=sender]"
+Usages['bid'] = \
+"Usage: !{#id|s:item_link @} #initial [#max=0] [#increment=0] [w:toon_name=sender]\n"+\
+"Bidding: To bid send a tell to me begining with ! followed by either the auction ID number or item link. Item links must be followed by @\n"+\
+"The bid is comprised of 1 to 3 numbers separated by a space.\n"+\
+"Number one is the starting bid. Number two (optional) is your max bid. Number three (optional) is how much to increment your bid by until you are either winning or at max default is 1\n"+\
+"To bid for one of YOUR boxes from a different character type the toon name at the end of the line.\n"+\
+"Item bid 5 on bone chip\n"+\
+"Example: !bone chip@ 5\n"+\
+"ID bid 7 on auciton 3\n"+\
+"Example: !3 7\n"+\
+"ID bid 7 now & auto raise until 97 on auction 3\n"+\
+"Example: !3 7 97\n"+\
+"ID bid 7 now & auto raise until 97 increment bids by 5 on auction 3\n"+\
+"Example: !3 7 97 5\n"+\
+"Item bid for your box Mitsuki\n"+\
+"Example: !bone chip@ 5 Mitsuki\n"+\
+"Item bid for your box Mitsuki with max bid 70 and increment by 5\n"+\
+"Example: !bone chip@ 1 70 5 Mitsuki"
 def exBid(cmd: botCommand) ->str:
 
     aucId   = int(cmd.regMatch.group("aucId"))      if 'aucId' in cmd.regMatch.groupdict() else -1
@@ -36,41 +58,52 @@ def exBid(cmd: botCommand) ->str:
             return "Auctions do not exist but I if it did you would have bid on item:" + aucItem
     return AucMaster.AddBid(aucId, sender, bidder, aucItem, oDKP.getDKP(bidder), bidVal, bidMax, bidInc)
 
-Usages['admin'] = "Usage: !admin"
+AdminUsages['admin'] = \
+"Usage: !admin\n"+\
+"Admin command: Type this command in the channel you want to enable to send admin commands and receive admin messages"+\
+"But if you are able to see this message then you are already in the admin channel. So this is a pointless message"
 def exAdmin(cmd: botCommand) -> str:
     AucMaster.AdminChannel = cmd.Channel
     return "Admin Commands & Messages Here"
 
-Usages['dkp'] = "Usage: !dkp [toon name=sender]"
+Usages['dkp'] = \
+"Usage: !dkp [toon name=sender]"+\
+"DKP request: Use this command to request the current dkp balance for yourself (default) or any toon by entering the name"
 def exDKP(cmd: botCommand) -> str:
     name        = cmd.Params[1] if cmd.ParCount > 0 else cmd.Sender
     dkp         = oDKP.getDKP(name)
     return dkp.__str__() + " DKP for " + name
 
-Usages['help'] = "Usage: !help [bid|dkp|status]"
+Usages['help'] = \
+"Usage: !help [bid|dkp|status]\n"+\
+"Help: Use this command to get usage description and examples of how to interact with me\n"+\
+"To receive information about how to bid type: !help bid\n"+\
+"How to interpret usage statments.\n"+\
+" | means separate the options available for that parameter so for help your options are bid or dkp or status\n"+\
+" # means that parameter must be a number only\n"+\
+"b: means that parameter is a boolean [0|1|True|False]\n"+\
+"w: means that parameter is a single word\n"+\
+"s: means that parameter is a string matching everything except the symbol after listed after the parameter\n"+\
+"{} means one of the options inside the brakets are required\n"+\
+"[] means this parameter is optional. If there are multiple optional parameters in a row of the same type to use one all preceeding must be present\n"
 def exHelp(cmd: botCommand) -> str:
-    validParam = ["bid","dkp","status"]
-    catagory = cmd.Params[1] if cmd.ParCount > 0 else ""
-    if   catagory == "bid":
-        return Usages['bid']
-    elif catagory == "dkp":
-        return Usages['dkp']
-    elif catagory == "status":
-        return Usages['status']
     
+    catagory = cmd.Params[1] if cmd.ParCount > 0 else None
+    if catagory in Usages:
+        return Usages[catagory]
     return Usages['help']
-
-Usages['status'] = "Usage: !status"
+    
+Usages['status'] = \
+"Usage: !status\n"+\
+"Not Implemented"
 def exStatus(cmd: botCommand) -> str:
-    usage = "Status"
-    return usage + "Not Implemented"
+    return Usages['status']
 
 # ADMIN COMMANDS
-Usages['editAuc'] = "Usage: !<#id|'all'> {award|cancel|close|pause|start [#duration] [#quantity] [b:auto award]}"
+AdminUsages['editAuc'] = \
+"Usage: !<#id|all> {award|cancel|close|pause|start [#duration] [#quantity] [b:auto award]}\n"+\
+"Edit Auction admin command"
 def exEditAuc(cmd: botCommand) -> str:
-    description = "Admin command starting with !<id> are editing existing auctions"
-    validChans = ["group","g","raid","rsay","guild","gu"]
-
     id          = int(cmd.regMatch.group("aucId"))      if cmd.regMatch.group("aucId").lower() != "all" else AucMaster.IDAll
     cmdType     = cmd.regMatch.group("cmdType").lower()
     duration    = float(cmd.regMatch.group("duration")) if cmd.regMatch.group("duration")   is not None else -1.0
@@ -91,9 +124,15 @@ def exEditAuc(cmd: botCommand) -> str:
     
     return "Auctions do not exist yet therefore i cannot " + cmdType + " them"
 
-Usages['auc'] = "Usage: !auc [-{s|a}] item [| item].. @ [#duration=3] [#quantity=1] [autoAward=false]"
+AdminUsages['auc'] = \
+"Usage: !auc [-{s|a}] s:item [| s:item].. @ [#duration=3.0] [#quantity=1] [b:autoAward=false]\n"+\
+"Create Auction Admin command.\n"+\
+"-s will start auction immediately after creation if max number of auctions running then it will wait in queue\n"+\
+"-a will set the auction to auto award the winner when time runs out.\n"+\
+"For multiple - options do no use more than one -. Example: -sa\n"+\
+"For multiple items separate item links by | and list all before the @ symbol\n"+\
+"Duration will accept decimals, but must start with a digit. To have time less than 1 preceed the decimal with a 0\n"
 def exNewAuc(cmd: botCommand) -> str:
-    description = "Admin command starting with !auc are creating new auctions"
     switchOpts  = cmd.regMatch.group("switchOpts") if cmd.regMatch.group("switchOpts") is not None else ""
     itemsStr    = cmd.regMatch.group("items")
     items       = re.split(r'\s*\|\s*',itemsStr)
@@ -101,81 +140,120 @@ def exNewAuc(cmd: botCommand) -> str:
     quanity     = int(cmd.regMatch.group("quanity")) if cmd.regMatch.group("quanity") is not None else 1
     autoStart   = "s" in switchOpts
     autoAward   = "a" in switchOpts
-    
+    result = AucMaster.AddAuction(items,duration,quanity,autoStart,autoAward)
     if BotDebug:
-        return "Can't start new auction yet on " + itemsStr + " but options would be " + switchOpts + " duration " + duration.__str__() + " quantity " + quanity.__str__()
-    return AucMaster.AddAuction(items,duration,quanity,autoStart,autoAward)
+        return "Can't start new auction yet on " + itemsStr + " but options would be " + switchOpts + " duration " + duration.__str__() + " quantity " + quanity.__str__()+"\n" + result
+    return result
 
-Usages['chan'] = "Usage: !chan {group|g|raid|rsay|guild|gu}"
+AdminUsages['chan'] = \
+"Usage: !chan {group|g|raid|rsay|guild|gu}\n"+\
+"Channel set command changes what channel auctions annoucements go"
 def exChan(cmd: botCommand) -> str:
     description = "Channel Set command configures where auctions will take place."
 
     validChans = ["group","g","raid","rsay","guild","gu"]
 
     if not cmd.ParCount > 0: 
-        return "Error: no channel specified. " + Usages['chan'] + " Auction channel currently set to: " + AucMaster.AuctionChannel
+        return "Error: no channel specified. Auction channel currently set to: " + AucMaster.AuctionChannel +"\n" + AdminUsages['chan']
     if cmd.Params[1] not in validChans:
-        return "Error: Channel specified is not in approved list " + Usages['chan'] 
+        return "Error: Channel specified is not in approved list " + AdminUsages['chan'] 
     else:
         AucMaster.AuctionChannel = cmd.Params[1]
         return "Auction channel currently set to: " + AucMaster.AuctionChannel
 
-Usages['clear'] = "Usage: !clear"
+AdminUsages['clear'] = \
+"Usage: !clear\n"+\
+"Clear command deletes all auctions and bids closed active and pending."
 def exClear(cmd: botCommand) -> str:
     description = "Clear command deletes all auctions and bids closed active and pending. "
     AucMaster.ClearAuctionsAndBids()
     return "Nuked it ALL, start over. GL"
     
-Usages['debug'] = "Usage: !debug"
+AdminUsages['debug'] = \
+"Usage: !debug\n"+\
+"Debug command toggles the debug state on and off."
 def exDebug(cmd: botCommand) -> str:
-    description = "Debug command toggles the debug state on and off."
     global BotDebug
     BotDebug = not BotDebug
     return "Bot Debug set to " + BotDebug.__str__()
-
-Usages['adminHelp'] = "Usage: !help [auc|chan|editAuc|max|clear|debug|user|admin]"
-def exAdminHelp(cmd: botCommand) -> str:
-    catagory        = cmd.Params[1] if cmd.ParCount > 0 else ""
-    if catagory == "user":
-        return exHelp(cmd) + " Must be in a non-Admin channel to use options"    
-    if   catagory == "admin":
-        return Usages['admin']
-    if   catagory == "auc":
-        return Usages['auc']
-    if   catagory == "chan":
-        return Usages['chan']
-    if   catagory == "clear":
-        return Usages['clear']
-    if   catagory == "debug":
-        return Usages['debug']
-    if   catagory == "editAuc":
-        return Usages['editAuc']
-    if   catagory == "max":
-        return Usages['max']
     
-    return Usages['adminHelp']
-
-Usages['max'] = "Usage: !max #num : where <num> is a positive integer."
+AdminUsages['max'] = \
+"Usage: !max #num\n"+\
+"Max command sets the number of concurrent auction"
 def exMax(cmd: botCommand) -> str:
-    description = "Max command sets the number of concurrent auction"
 
     if cmd.ParCount > 0 and cmd.Params[1].isnumeric():
         maxAuc = int(cmd.Params[1])
     elif cmd.ParCount > 0:
-        return "Error: <num> entered <"+cmd.Params[1]+"> is not a positive integer " + Usages['max']
+        return "Error: <num> entered <"+cmd.Params[1]+"> is not a positive integer " + AdminUsages['max']
     else:
-        return "Error: No <num> given " + Usages['max'] + "Current max is " + AucMaster.MaxActiveAuctions.__str__()
+        return "Error: No <num> given " + AdminUsages['max'] + "Current max is " + AucMaster.MaxActiveAuctions.__str__()
     if maxAuc < 1:
-        return "Error: <num> entered <"+cmd.Params[1]+"> is not positive " + Usages['max']
+        return "Error: <num> entered <"+cmd.Params[1]+"> is not positive " + AdminUsages['max']
     AucMaster.MaxActiveAuctions = maxAuc
     return "Max concurrent auctions set to "+ AucMaster.MaxActiveAuctions.__str__()
+
+helpOpts = ""
+for i, k in enumerate(sorted(Usages.keys())):
+    helpOpts += k.__str__() if i == len(Usages)-1 else k.__str__() + "|"
+
+Usages['help'] = \
+"Usage: !help ["+helpOpts+"]\n"+\
+"Help: Use this command to get usage description and examples of how to interact with me\n"+\
+"To receive information about how to bid type: !help bid\n"+\
+"How to interpret usage statments.\n"+\
+" | means separate the options available for that parameter so for help your options are bid or dkp or status\n"+\
+" # means that parameter must be a number only\n"+\
+"b: means that parameter is a boolean [0|1|True|False]\n"+\
+"w: means that parameter is a single word\n"+\
+"s: means that parameter is a string matching everything except the symbol after listed after the parameter\n"+\
+"{} means one of the options inside the brakets are required\n"+\
+"[] means this parameter is optional. If there are multiple optional parameters in a row of the same type to use one all preceeding must be present\n"
+
+def exHelp(cmd: botCommand) -> str:
     
+    catagory = cmd.Params[1] if cmd.ParCount > 0 else None
+    if catagory in Usages:
+        return Usages[catagory]
+    return Usages['help']
+
+raidOpts = ""
+for i, k in enumerate(sorted(RaidStrats.keys())):
+    raidOpts += k.__str__() if i == len(RaidStrats)-1 else k.__str__() + "|"
+
+RaidStrats['raid'] = \
+"Usage: !raid ["+raidOpts+"]\n"+\
+"Raid : Use this command print raid fight strat summaries and cheat sheets\n"
+def exRaid(cmd: botCommand) -> str:
+    
+    catagory = cmd.Params[1] if cmd.ParCount > 0 else None
+    if catagory in RaidStrats:
+        return RaidStrats[catagory]
+    return RaidStrats['raid']
+
+adminHelpOpts = ""
+for i, k in enumerate(sorted(AdminUsages.keys())):
+    adminHelpOpts += k.__str__() if i == len(AdminUsages)-1 else k.__str__() + "|"
+    
+AdminUsages['adminHelp'] = \
+"Usage: !help ["+adminHelpOpts+"]\n"+\
+"Help in this admin channel allows you to query usages descriptions and examples of admin commands\n"+\
+"To see general user help with explanation of usage statements type '!help user'"
+
+def exAdminHelp(cmd: botCommand) -> str:
+    catagory = cmd.Params[1] if cmd.ParCount > 0 else None
+    if catagory == "user":
+        return "Must be in a non-Admin channel to query none admin commands:\n" + exHelp(cmd)    
+    if catagory in AdminUsages:
+        return AdminUsages[catagory]
+    return AdminUsages['adminHelp']
 
 cmdRegistration = {
     "Normal" : {
         "ADMIN"                     : exAdmin,
         "DKP"                       : exDKP,
         "HELP"                      : exHelp,
+        "RAID"                      : exRaid,
         "STATUS"                    : exStatus,
         regexHelper.bidWithIDPtrn   : exBid,
         regexHelper.bidWithItemPtrn : exBid
@@ -192,8 +270,10 @@ cmdRegistration = {
 }
 
 def reply(cmd: botCommand, message: str):
-    if(cmd.Channel == "you"): eqApp.tell(cmd.Sender, message)
-    else: eqApp.sendMessage(cmd.Channel, message)
+    messages = message.split("\n")
+    for line in messages:   
+        if(cmd.Channel == "you"): eqApp.tell(cmd.Sender, line)
+        else: eqApp.sendMessage(cmd.Channel, line)
     return
 
 def execute(cmd: botCommand):
