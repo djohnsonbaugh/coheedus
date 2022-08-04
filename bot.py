@@ -28,20 +28,24 @@ Usages['bid'] = \
 "Usage: !{#id|s:item_link @} #initial [#max=0] [#increment=0] [w:toon_name=sender]\n"+\
 "Bidding: To bid send a tell to me begining with ! followed by either the auction ID number or item link. Item links must be followed by @\n"+\
 "The bid is comprised of 1 to 3 numbers separated by a space.\n"+\
-"Number one is the starting bid. Number two (optional) is your max bid. Number three (optional) is how much to increment your bid by until you are either winning or at max default is 1\n"+\
+"The first number is starting bid. Second (optional) is your max bid. Third (optional) is how much to increment your bid by until you are either winning or at max default increment is 1\n"+\
 "To bid for one of YOUR boxes from a different character type the toon name at the end of the line.\n"+\
-"Item bid 5 on bone chip\n"+\
-"Example: !bone chip@ 5\n"+\
-"ID bid 7 on auciton 3\n"+\
-"Example: !3 7\n"+\
-"ID bid 7 now & auto raise until 97 on auction 3\n"+\
-"Example: !3 7 97\n"+\
-"ID bid 7 now & auto raise until 97 increment bids by 5 on auction 3\n"+\
-"Example: !3 7 97 5\n"+\
-"Item bid for your box Mitsuki\n"+\
-"Example: !bone chip@ 5 Mitsuki\n"+\
-"Item bid for your box Mitsuki with max bid 70 and increment by 5\n"+\
-"Example: !bone chip@ 1 70 5 Mitsuki"
+"For examples type !help bid_id or !help bid_name"
+
+Usages['bid_id'] = \
+"Usage: !#id #initial [#max=0] [#increment=0] [w:toon_name=sender]\n"+\
+"Bid 7 on auciton 3 <Example> !3 7\n"+\
+"Bid 7 now & auto raise until 97 on auction 3 <Example> !3 7 97\n"+\
+"Bid 7 now & auto raise until 97 increment bids by 5 on auction 3 <Example> !3 7 97 5\n"+\
+"Bid 7 now & auto raise until 97 on auction 3 for your box Mitsuki <Example> !3 7 97 Mitsuki\n"
+
+Usages['bid_name'] = \
+"Usage: !s:item_link @ #initial [#max=0] [#increment=0] [w:toon_name=sender]\n"+\
+"Bid 5 on bone chip <Example> !bone chip@5\n"+\
+"Bid for your box Mitsuki <Example> !bone chip@ 5 Mitsuki\n"+\
+"Bid for your box Mitsuki with max bid 70 <Example> !bone chip @1 70 Mitsuki\n"+\
+"Bid for your box Mitsuki with max bid 70 and increment by 5 <Example> !bone chip@ 1 70 5 Mitsuki"
+
 def exBid(cmd: botCommand) ->str:
 
     aucId   = int(cmd.regMatch.group("aucId"))      if 'aucId' in cmd.regMatch.groupdict() else -1
