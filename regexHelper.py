@@ -3,8 +3,8 @@ from botCommand import botCommand
 commandPattern = re.compile("\[[\w\d: ]+\]\s(\w+)\stells\s(the\s)?(\w+:)?(group|guild|raid|you|\d+),\s'\w*!(.*)'")
 aucCmdPtrn = re.compile("^\s*auc\s+((?P<switchOpts>-[sa]+)\s*)?((?P<items>[^\n\r@]+[^\s@])\s*)(@\s*(?P<duration>\d+\.?\d*)(\s+(?P<quanity>\d+))?)?")
 aucIdCmdsPtrn = re.compile("(?i)^\s*(?P<aucId>all|\d+)\s+(?P<cmdType>award|pause|close|start|cancel)\s*(?P<duration>\d+\.?\d*)?(\s+(?P<quanity>\d+)?)?(\s+(?P<autoAward>0|1|true|false)?)?")
-bidWithIDPtrn = re.compile("^\s*(?P<aucId>\d+)\s+(?P<bidVal>\d+)(\s+(?P<bidMax>\d+))?(\s+(?P<bidInc>-?[\d]+))?(\s*(?P<proxyToon>\w+))?")
-bidWithItemPtrn = re.compile("^\s*(?P<aucItem>[^\n\r@]+?)\s*@\s*(?P<bidVal>\d+)(\s+(?P<bidMax>\d+))?(\s+(?P<bidInc>-?[\d]+))?(\s*(?P<proxyToon>\w+))?")
+bidWithIDPtrn = re.compile("^\s*(?P<aucId>\d+)\s*(\s|@)\s*?(?P<bidVal>\d+)(\s+(?P<bidMax>\d+))?(\s+(?P<bidInc>-?[\d]+))?(\s*(?P<proxyToon>\w+))?")
+bidWithItemPtrn = re.compile("^\s*(?P<aucItem>[^\n\r@<>[\]{}$~_]*\w[^\n\r@<>[\]{}$~_]*)\s*@\s*(?P<bidVal>\d+)(\s+(?P<bidMax>\d+))?(\s+(?P<bidInc>-?[\d]+))?(\s*(?P<proxyToon>\w+))?")
 
 def isCommand(line:str, cmd: botCommand) -> bool:
     if(commandPattern.match(line)):
