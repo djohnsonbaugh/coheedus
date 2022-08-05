@@ -37,7 +37,7 @@ Usages['bid_id'] = \
 "Bid 7 on auciton 3 <Example> !3 7\n"+\
 "Bid 7 now & auto raise until 97 on auction 3 <Example> !3 7 97\n"+\
 "Bid 7 now & auto raise until 97 increment bids by 5 on auction 3 <Example> !3 7 97 5\n"+\
-"Bid 7 now & auto raise until 97 on auction 3 for your box Mitsuki <Example> !3 7 97 Mitsuki\n"
+"Bid 7 now & auto raise until 97 on auction 3 for your box Mitsuki <Example> !3 7 97 Mitsuki"
 
 Usages['bid_name'] = \
 "Usage: !s:item_link @ #initial [#max=0] [#increment=0] [w:toon_name=sender]\n"+\
@@ -53,7 +53,7 @@ def exBid(cmd: botCommand) ->str:
     sender  = cmd.Sender
     bidVal  = int(cmd.regMatch.group("bidVal"))
     bidMax  = int(cmd.regMatch.group("bidMax"))     if cmd.regMatch.group("bidMax")     is not None else bidVal
-    bidInc  = int(cmd.regMatch.group("bidInc"))     if cmd.regMatch.group("bidInc")     is not None else 1 if cmd.regMatch.group("bidMax")     is not None else 0
+    bidInc  = int(cmd.regMatch.group("bidInc"))     if cmd.regMatch.group("bidInc")     is not None else 0
     bidder  =     cmd.regMatch.group("proxyToon")   if cmd.regMatch.group("proxyToon")  is not None else sender
     if BotDebug:
         if aucId > 0:
