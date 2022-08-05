@@ -81,7 +81,7 @@ class Auctioneer(object):
                 aucid = auctionsearch.ID
             else:
                 aucid = self.__auccount
-                self.SendAdminMessage(self.AddAuction([item]))
+                self.SendAdminMessage("VALIDATE->" + self.AddAuction([item]))
         if aucid in self.__auctions.keys():
             if self.__auctions[aucid].Closed: return "Auction[" + str(aucid) + "] is closed."
             else: return self.__auctions[aucid].AddBid(sender, bidder, self.__auctions[aucid].ItemName, bidderdkp, bid, max, increment)
@@ -243,7 +243,7 @@ class Auctioneer(object):
                     message = "Accepting Bids - " if auction.TimeLeft > zero else "LAST CALL:"
                     self.SendAuctionMessage(message + auction.Announce())
                 else:
-                    if auction.TimeLeft <= zero and auction.TimeSinceLastBid > shortwait:
+                    if auction.TimeLeft <= zero and auction.TimeSinceLastBid > longwait:
                         if not auction.Closed:
                             self.SendAuctionMessage(auction.AnnounceClosed())
                             self.SendAdminMessage("Ready To Award:" + auction.WinnerSummary)
