@@ -290,6 +290,7 @@ def execute(cmd: botCommand):
         if regexHelper.eqCommand(command, cmd):
             reply(cmd, cmdRegistration["Normal"][command](cmd))
             return
+    reply(cmd, "?")
     return
 
 async def runAuctioneer():
