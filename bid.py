@@ -72,7 +72,7 @@ class Bid(object):
     @property
     def IncrementStr(self)->str: return "Primes" if (self.Increment == -1) else self.Increment.__str__()
     @property
-    def IsIncrementBid(self)->bool: return (self.__increment != 0 and self.__bidMin > self.__bidMax)
+    def IsIncrementBid(self)->bool: return (self.__increment != 0 and self.__bidMin < self.__bidMax)
     @property
     def IsPreBid(self)->bool: return (self.__aucID < 0)
     @property

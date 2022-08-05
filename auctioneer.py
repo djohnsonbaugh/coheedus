@@ -238,7 +238,7 @@ class Auctioneer(object):
                     #LATE AUCTION
                     (auction.TimeSinceLastAnnouncement > shortwait and auction.TimeLeft < minute and auction.TimeLeft > zero) or
                     #LAST CALL AUCTION
-                    (auction.TimeLeft <= zero and auction.TimeSinceLastBid < shortwait and auction.TimeSinceLastAnnouncement > microwait)
+                    (auction.TimeLeft <= zero and auction.TimeSinceLastBid < longwait and auction.TimeSinceLastAnnouncement > shortwait)
                     ):
                     message = "Accepting Bids - " if auction.TimeLeft > zero else "LAST CALL:"
                     self.SendAuctionMessage(message + auction.Announce())
