@@ -53,7 +53,7 @@ def exBid(cmd: botCommand) ->str:
     sender  = cmd.Sender
     bidVal  = int(cmd.regMatch.group("bidVal"))
     bidMax  = int(cmd.regMatch.group("bidMax"))     if cmd.regMatch.group("bidMax")     is not None else bidVal
-    bidInc  = int(cmd.regMatch.group("bidInc"))     if cmd.regMatch.group("bidInc")     is not None else 0
+    bidInc  = int(cmd.regMatch.group("bidInc"))     if cmd.regMatch.group("bidInc")     is not None else 1
     bidder  =     cmd.regMatch.group("proxyToon")   if cmd.regMatch.group("proxyToon")  is not None else sender
     if BotDebug:
         if aucId > 0:
