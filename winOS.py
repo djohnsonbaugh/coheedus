@@ -98,14 +98,15 @@ def pushKey(keypress: winKey, shift: bool=False, ctrl: bool=False, alt: bool=Fal
 
     # wait for it to get registered. 
     # You might need to increase this time for some applications
-    time.sleep(.05)
+    if shift or ctrl or alt:
+        time.sleep(.2)
 
     # send key down event
     win32api.keybd_event(keypress.value, win32api.MapVirtualKey(keypress.value, 0), 0, 0)
 
     # wait for it to get registered. 
     # You might need to increase this time for some applications
-    time.sleep(.1)
+    time.sleep(.2)
 
     # send key up event
     win32api.keybd_event(keypress.value, win32api.MapVirtualKey(keypress.value, 0), win32con.KEYEVENTF_KEYUP, 0)

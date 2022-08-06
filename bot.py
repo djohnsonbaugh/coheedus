@@ -7,9 +7,13 @@ from auctioneer import Auctioneer
 import asyncio
 import re
 oDKP : openDKP = None
-def initConfig(config: appConfig):
+
+DiscordReplyCallBack = None
+
+def init(config: appConfig, discordreply):
     global oDKP
     oDKP = openDKP(config)
+    DiscordReplyCallBack = discordreply
     return
 
 AucMaster:Auctioneer = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3)
@@ -252,6 +256,11 @@ def exAdminHelp(cmd: botCommand) -> str:
         return AdminUsages[catagory]
     return AdminUsages['adminHelp']
 
+#Discord Commands
+def exPrintToGuild(cmd: botCommand)->str:
+    cmd.Channel = "guild"
+    return "<" + cmd.Sender + "> " + cmd.Text
+
 cmdRegistration = {
     "Normal" : {
         "ADMIN"                     : exAdmin,
@@ -270,6 +279,9 @@ cmdRegistration = {
         "DEBUG"                     : exDebug,
         "HELP"                      : exAdminHelp,
         "MAX"                       : exMax
+    },
+    "Discord" : {
+        "DEFAULT"                   : exPrintToGuild
     }
 }
 
@@ -277,20 +289,28 @@ def reply(cmd: botCommand, message: str):
     messages = message.split("\n")
     for line in messages:   
         if(cmd.Channel == "you"): eqApp.tell(cmd.Sender, line)
+        elif(cmd.Channel == "discord"): DiscordReplyCallBack(line)
         else: eqApp.sendMessage(cmd.Channel, line)
     return
 
 def execute(cmd: botCommand):
-    if(cmd.Channel == AucMaster.AdminChannel):
-        for command in cmdRegistration["Admin"]:
+    if(cmd.Channel == "discord"):
+        for command in cmdRegistration["Discord"]:
             if regexHelper.eqCommand(command, cmd):
-                reply(cmd, cmdRegistration["Admin"][command](cmd))
+                reply(cmd, cmdRegistration["Discord"][command](cmd))
                 return
-    for command in cmdRegistration["Normal"]:
-        if regexHelper.eqCommand(command, cmd):
-            reply(cmd, cmdRegistration["Normal"][command](cmd))
-            return
-    reply(cmd, "?")
+        reply(cmd, cmdRegistration["Discord"]["DEFAULT"](cmd))
+    else:
+        if(cmd.Channel == AucMaster.AdminChannel):
+            for command in cmdRegistration["Admin"]:
+                if regexHelper.eqCommand(command, cmd):
+                    reply(cmd, cmdRegistration["Admin"][command](cmd))
+                    return
+        for command in cmdRegistration["Normal"]:
+            if regexHelper.eqCommand(command, cmd):
+                reply(cmd, cmdRegistration["Normal"][command](cmd))
+                return
+        reply(cmd, "?")
     return
 
 async def runAuctioneer():

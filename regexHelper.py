@@ -5,6 +5,7 @@ aucCmdPtrn = re.compile("^\s*auc\s+((?P<switchOpts>-[sa]+)\s*)?((?P<items>[^\n\r
 aucIdCmdsPtrn = re.compile("(?i)^\s*(?P<aucId>all|\d+)\s+(?P<cmdType>award|pause|close|start|cancel)\s*(?P<duration>\d+\.?\d*)?(\s+(?P<quanity>\d+)?)?(\s+(?P<autoAward>0|1|true|false)?)?")
 bidWithIDPtrn = re.compile("^\s*(?P<aucId>\d+)\s*(\s|@)\s*?(?P<bidVal>\d+)(\s+(?P<bidMax>\d+))?(\s+(?P<bidInc>-?[\d]+))?(\s*(?P<proxyToon>\w+))?")
 bidWithItemPtrn = re.compile("^\s*(?P<aucItem>[^\n\r@<>[\]{}$~_]*[a-zA-Z][^\n\r@<>[\]{}$~_]*?)\s*@\s*(?P<bidVal>\d+)(\s+(?P<bidMax>\d+))?(\s+(?P<bidInc>-?[\d]+))?(\s*(?P<proxyToon>\w+))?")
+guildMessagePattern = re.compile("\[[\w\d: ]+\]\s(\w+)\stells\sthe\sguild,\s'(.*)'")
 
 def isCommand(line:str, cmd: botCommand) -> bool:
     if(commandPattern.match(line)):
@@ -12,6 +13,14 @@ def isCommand(line:str, cmd: botCommand) -> bool:
         cmd.set(result.group(1).strip(), result.group(4).strip(), result.group(5).strip())
         return True
     return False
+
+def isGuildMessage(line:str, cmd: botCommand)->bool:
+    if(guildMessagePattern.match(line)):
+        result = guildMessagePattern.search(line)
+        cmd.set(result.group(1).strip(), "", result.group(2).strip())
+        return True
+    return False
+
 
 def equalsCommandStr(cmdpattern:str, cmd: botCommand)->bool:
     if(re.match("(?xi)" + cmdpattern,cmd.Cmd)): return True

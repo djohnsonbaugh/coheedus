@@ -42,6 +42,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="coheedus.py" />
+    <Compile Include="discordbot.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="eqApp.py">
       <SubType>Code</SubType>
     </Compile>

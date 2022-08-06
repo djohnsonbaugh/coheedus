@@ -34,7 +34,7 @@ class eqLog(object):
                 if tmp is not None:
                     line += tmp
                     if line.endswith("\n"):
-                        newLineFunc(line)
+                        await newLineFunc(line)
                         line = ''
                     else:
                         await asyncio.sleep(0)

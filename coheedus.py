@@ -1,4 +1,3 @@
-import asyncio
 from appConfig import appConfig
 import eqApp
 from botCommand import botCommand
@@ -6,6 +5,25 @@ import bot
 from eqLog import eqLog
 import regexHelper
 import test
+import discordbot
+
+#####################################
+#Events##############################
+#####################################
+async def eventNewLogLine(line:str):
+    cmd : botCommand = botCommand()
+    if regexHelper.isCommand(line, cmd):
+        bot.execute(cmd)
+    elif regexHelper.isGuildMessage(line, cmd):
+        await discordbot.newGuildMessageEvent(cmd.Sender, cmd.Text)
+    else:
+        print(line, end='')
+
+def eventNewDiscordMessage(sender:str, line:str):
+    cmd : botCommand = botCommand()
+    cmd.set(sender, "discord", line)
+    bot.execute(cmd)
+    return
 
 #####################################
 #Read Config and Set Globals#########
@@ -14,29 +32,20 @@ print("Loading Config...")
 
 conf: appConfig = appConfig()
 eqApp.initConfig(conf)
-bot.initConfig(conf)
+bot.init(conf, discordbot.botReply)
 log: eqLog = eqLog(conf)
-
+discordbot.init(conf, eventNewDiscordMessage)
 print("Config Loaded.")
 #####################################
 
 #####################################
-#Events##############################
-#####################################
-def eventNewLogLine(line:str):
-    cmd : botCommand = botCommand()
-    if regexHelper.isCommand(line, cmd):
-        bot.execute(cmd)
-    else:
-        print(line, end='')
-
-#####################################
 #Main##############################
 #####################################
-
-async def main():
+def main():
     print("Program starting....")
-    loop = asyncio.get_running_loop()
+
+    #Have to use the discord internal discord asyncio loop instead of our own
+    loop = discordbot.getLoop()
 
     print("Tests Starting...")
     loop.create_task(test.test())
@@ -49,9 +58,10 @@ async def main():
     print("Auctioneer Starting....")
     loop.create_task(bot.runAuctioneer())
     print("Auctioneer Started.")
+
+    print("Discord Bot Starting...")
+    discordbot.start()
     
-    while True:
-        await asyncio.sleep(0)
     return
 
-asyncio.run(main())
+main()
