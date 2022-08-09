@@ -15,7 +15,7 @@ class Auction(object):
         self.__closed:bool = False
         self.__restarted:bool = False
         self.__awarded:bool = False
-        self.__lastAnnouncement:datetime = datetime.min
+        self.__lastAnnouncement:datetime = datetime.max
         self.__timeleft:timedelta = timedelta(minutes=minutes)
         self.__lastNewBid:datetime = datetime.min
         return
@@ -54,9 +54,9 @@ class Auction(object):
     @property
     def TimeSinceLastBid(self)->timedelta: return datetime.now() - self.__lastNewBid
     @property
-    def TimeSinceLastAnnouncement(self)->timedelta: return datetime.now() - self.__lastAnnouncement
+    def TimeSinceLastAnnouncement(self)->timedelta: return datetime.now() - self.__lastAnnouncement if (datetime.now() - self.__lastAnnouncement > timedelta(0)) else timedelta(0)
     @property
-    def TimeLeft(self)->timedelta: return self.__timeleft if self.__timeleft > timedelta(0) else timedelta(0)
+    def TimeLeft(self)->timedelta: return self.__timeleft - self.TimeSinceLastAnnouncement if self.__timeleft - self.TimeSinceLastAnnouncement > timedelta(0) else timedelta(0)
     @property
     def ToStr(self)->str: return self.__str__()
 
@@ -169,13 +169,13 @@ class Auction(object):
         #ADD NEW BID
         self.__bids.append(newbid)      
         self.__lastNewBid = datetime.now()
-        self.__timeleft += timedelta(seconds=10)
+        if (self.__timeleft < timedelta(minutes=1,seconds=15)): self.__timeleft = timedelta(minutes=1,seconds=15)
         return self.AddBidComplete(newbid)
 
     def Pause(self):
         self.__started = False
         self.__scheduled = False
-        self.__lastAnnouncement = datetime.min
+        self.__lastAnnouncement = datetime.max
         return
     
     def Close(self):
@@ -217,7 +217,7 @@ class Auction(object):
         self.__scheduled = autostart
         self.__started = False
         self.__closed = False
-        self.__lastAnnouncement = datetime.min       
+        self.__lastAnnouncement = datetime.max       
         return
 
     @property

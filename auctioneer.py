@@ -202,6 +202,7 @@ class Auctioneer(object):
     def Announce(self):
         minute = timedelta(seconds=60)
         longwait = timedelta(seconds=45)
+        medwait = timedelta(seconds=30)
         shortwait = timedelta(seconds=15)
         microwait = timedelta(seconds=5)
         zero = timedelta(0)
@@ -224,26 +225,28 @@ class Auctioneer(object):
         auctioncount = self.__getActiveAuctionsCount()
         for auction in self.__getAvailableAuctions():
             if auctioncount < self.__maxaucs or auction.Active:
+                newstart:bool = False
                 if not auction.Active:
+                    newstart = True
                     if auction.Restarted:
                         self.SendAuctionMessage("=====RESTARTING AUCTION <<" + auction.ItemName + ">>=====")
                     else:
                         self.SendAuctionMessage("=====NEW AUCTION STARTING <<" + auction.ItemName + ">>=====")
                     auctioncount += 1
-                if (
-                    #NEW BID DELAY
-                    (auction.TimeSinceLastAnnouncement > auction.TimeSinceLastBid and auction.TimeSinceLastBid > microwait) or
-                    #EARLY AUCTION
-                    (auction.TimeSinceLastAnnouncement > longwait and auction.TimeLeft >= minute and auction.TimeLeft > zero) or
-                    #LATE AUCTION
-                    (auction.TimeSinceLastAnnouncement > shortwait and auction.TimeLeft < minute and auction.TimeLeft > zero) or
-                    #LAST CALL AUCTION
-                    (auction.TimeLeft <= zero and auction.TimeSinceLastBid < longwait and auction.TimeSinceLastAnnouncement > shortwait)
-                    ):
-                    message = "Accepting Bids - " if auction.TimeLeft > zero else "LAST CALL:"
-                    self.SendAuctionMessage(message + auction.Announce())
+                if (auction.TimeLeft > minute + medwait):
+                    if (auction.TimeSinceLastAnnouncement > longwait) or (auction.TimeSinceLastAnnouncement > auction.TimeSinceLastBid and auction.TimeSinceLastBid > microwait) or newstart:
+                        message = "Accepting Bids - "
+                        self.SendAuctionMessage(message + auction.Announce())
+                elif auction.TimeLeft >= medwait:
+                    if(auction.TimeSinceLastAnnouncement > medwait) or (auction.TimeSinceLastAnnouncement > auction.TimeSinceLastBid and auction.TimeSinceLastBid > microwait):
+                        message = "2nd Call Bids - "
+                        self.SendAuctionMessage(message + auction.Announce())
+                elif (auction.TimeLeft < medwait and auction.TimeLeft > zero)  or (auction.TimeSinceLastAnnouncement > auction.TimeSinceLastBid and auction.TimeSinceLastBid > microwait):
+                    if auction.TimeSinceLastAnnouncement > shortwait:
+                        message = "FINAL CALL Bids - "
+                        self.SendAuctionMessage(message + auction.Announce())
                 else:
-                    if auction.TimeLeft <= zero and auction.TimeSinceLastBid > longwait:
+                    if auction.TimeLeft <= zero:
                         if not auction.Closed:
                             self.SendAuctionMessage(auction.AnnounceClosed())
                             self.SendAdminMessage("Ready To Award:" + auction.WinnerSummary)
