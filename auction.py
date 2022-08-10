@@ -225,12 +225,7 @@ class Auction(object):
         aucstring: str = "[Auc:" + str(self.ID)
         aucstring += "] " + str(self.ItemCount)
         aucstring += "x <<" + self.ItemName
-        aucstring += ">> "
-        seconds = self.TimeLeft.seconds
-        minutes = seconds // 60
-        seconds -= minutes * 60
-        aucstring += '{:02}:{:02}'.format(int(minutes), int(seconds))
-        aucstring += " Winning: "
+        aucstring += ">>"
         idstring = " [IDs:"
         if len(self.__winners) == 0: aucstring += "0"
         for i, bid in enumerate(list(self.__winners)):
@@ -239,6 +234,11 @@ class Auction(object):
                 idstring += ","
             aucstring += str(bid.Bid)
             idstring += str(bid.ID)
+        aucstring += "<< "
+        seconds = self.TimeLeft.seconds
+        minutes = seconds // 60
+        seconds -= minutes * 60
+        aucstring += '{:02}:{:02}'.format(int(minutes), int(seconds))
         aucstring += idstring + "]"
         return aucstring
 
