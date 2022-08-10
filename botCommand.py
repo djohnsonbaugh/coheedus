@@ -22,3 +22,9 @@ class botCommand(object):
         self.Cmd:str = self.Params[0].upper()
         self.ParCount: int = len(self.Params)- 1
         return
+
+    def __str__(self):
+        return self.Sender + "(" +self.Channel + ") " + self.Text
+
+    def __repr__(self):
+        return self.Sender + "(" +self.Channel + ") " + self.Text
