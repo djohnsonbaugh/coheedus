@@ -6,6 +6,7 @@ from eqLog import eqLog
 import regexHelper
 import test
 import discordbot
+import time
 import asyncio
 import gsheets
 from multiprocessing import Process, Queue
@@ -14,6 +15,7 @@ from multiprocessing import Process, Queue
 #Read Config and Set Globals#########
 #####################################
 if __name__ == "__main__":
+    processes:[Process] = []
     conf: appConfig = appConfig()
     GuildMessageQue:Queue = Queue()
     CommandQue:Queue = Queue()
@@ -43,14 +45,16 @@ def processFileMonitor(conf:appConfig, CommandQue: Queue, GuildQue: Queue):
 #####################################
 def main():
     print("Program starting....")
-
     print("Log Process Starting...")
     p = Process(target=processFileMonitor,args=(conf,CommandQue, GuildMessageQue))
     p.start()
+    processes.append(p)
     print("Log Process Started.")
 
     print("Auctioneer Process Starting...")
-    Process(target=processAuctioneer,args=(conf,CommandQue)).start()
+    p = Process(target=processAuctioneer,args=(conf,CommandQue))
+    p.start()
+    processes.append(p)
     print("Aunctioneer Process Started.")
 
     loop = discordbot.getLoop()

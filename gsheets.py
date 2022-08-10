@@ -43,7 +43,7 @@ def init():
         'https://www.googleapis.com/auth/drive',
         'https://www.googleapis.com/auth/drive.file'
         ]
-    file_name = 'python-sheet-358820-d8c07e7ce346.json'
+    file_name = 'python-sheet-oauth.json'
     creds = ServiceAccountCredentials.from_json_keyfile_name(file_name,scope)
     client = gspread.authorize(creds)
     SS = client.open('GuildDoNProgression')

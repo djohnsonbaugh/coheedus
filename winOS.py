@@ -7,6 +7,8 @@ import win32con
 import win32api
 import time
 from enum import Enum
+import os
+import psutil
 
 class winKey(Enum):
     LM = 0x01
@@ -151,3 +153,9 @@ def toggleWindowForFunction(winName:str, func, arg):
     ret = func(arg)
     activateWindow(hwnd)
     return ret
+
+def isParentAlive()->bool:
+    pid = os.getppid()
+    if psutil.pid_exists(pid):
+        return True
+    return False

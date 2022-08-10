@@ -1,6 +1,7 @@
 import appConfig
 from os.path import exists
 import os
+import winOS
 import time
 from datetime import datetime
 from multiprocessing import Queue
@@ -46,7 +47,7 @@ class eqLog(object):
         self.resetLogFile()
         with open(self.getFileName(), 'r') as file:
             line:str = ''
-            while True:
+            while winOS.isParentAlive():
                 tmp = file.readline()
                 if tmp is not None:
                     line += tmp
@@ -57,4 +58,5 @@ class eqLog(object):
                         time.sleep(1)
                 else: 
                     time.sleep(1)
+        print("Log parent dead - goodbye")
         return

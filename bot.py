@@ -9,6 +9,7 @@ import re
 from multiprocessing import Queue
 from datetime import datetime, timedelta
 import time
+import winOS
 oDKP : openDKP = None
 
 DiscordReplyCallBack = None
@@ -320,7 +321,7 @@ def execute(cmd: botCommand):
 
 def runAuctioneer():
     last:datetime = datetime.now()
-    while True:
+    while winOS.isParentAlive():
         if not CommandQue.empty():
             try:
                 cmd = CommandQue.get_nowait()
@@ -332,4 +333,5 @@ def runAuctioneer():
             time.sleep(3)
         else:
             last = datetime.now()
+    print("Auc parent dead - goodbye")
     return
