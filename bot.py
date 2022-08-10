@@ -7,6 +7,8 @@ from auctioneer import Auctioneer
 import asyncio
 import re
 from multiprocessing import Queue
+from datetime import datetime, timedelta
+import time
 oDKP : openDKP = None
 
 DiscordReplyCallBack = None
@@ -317,15 +319,17 @@ def execute(cmd: botCommand):
     return
 
 def runAuctioneer():
+    last:datetime = datetime.now()
     while True:
         if not CommandQue.empty():
             try:
                 cmd = CommandQue.get_nowait()
                 execute(cmd)
-            except Empty:
-                print("Command Que Empty Exception")
             except:
                 print("Command Que Get Error")
-        AucMaster.Announce()
-#        time.sleep(0.1)
+        messagecount = AucMaster.Announce()
+        if messagecount == 0 and datetime.now() - last > timedelta(minutes=5):
+            time.sleep(3)
+        else:
+            last = datetime.now()
     return

@@ -53,8 +53,8 @@ class eqLog(object):
                     if line.endswith("\n"):
                         self.eventNewLogLine(line)
                         line = ''
-                    #else:
-                    #    time
+                    elif line == '':
+                        time.sleep(1)
                 else: 
                     time.sleep(1)
         return

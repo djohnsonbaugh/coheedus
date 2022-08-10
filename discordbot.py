@@ -69,5 +69,7 @@ async def ProcessGuildMessageQue():
                 await GuildChatChannel.send("<" + cmd.Sender + "> " + cmd.Text)
             except:
                 print("Guild Message Que Get Error")
+        else:
+            await asyncio.sleep(2)    
         await asyncio.sleep(0)
     return
