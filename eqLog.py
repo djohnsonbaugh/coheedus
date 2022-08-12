@@ -36,9 +36,9 @@ class eqLog(object):
             print(line, end='')
             self.CMDQue.put(cmd)
         elif regexHelper.isGuildMessage(line, cmd):
-            print(line, end='')
             self.GuildMessageQue.put(cmd)
-            print("I put" + str(cmd) + " in the que and the lenght is " + str(self.GuildMessageQue.qsize()))
+        elif regexHelper.isGuildAchievement(line,cmd):
+            self.GuildMessageQue.put(cmd)
         #else:
         #    print(line, end='')
         return

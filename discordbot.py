@@ -48,7 +48,9 @@ async def on_message(message):
         return
     if(message.channel.id == GuildChatChannel.id):
         sender = message.author.nick if message.author.nick is not None else message.author.name
-        eventNewDiscordMessage(sender, message.content)
+        mes:str = message.clean_content
+        mes.replace("🙂",":)")
+        eventNewDiscordMessage(sender, mes)
     return
 
 def botReply(message:str):
@@ -66,7 +68,10 @@ async def ProcessGuildMessageQue():
         if not GuildMessageQue.empty():
             try:
                 cmd = GuildMessageQue.get_nowait()
-                await GuildChatChannel.send("<" + cmd.Sender + "> " + cmd.Text)
+                if(cmd.Sender == "Everquest"):
+                    await GuildChatChannel.send(cmd.Text)
+                else:
+                    await GuildChatChannel.send("<" + cmd.Sender + "> " + cmd.Text)
             except:
                 print("Guild Message Que Get Error")
         else:

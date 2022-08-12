@@ -70,6 +70,9 @@
   <ItemGroup>
     <Content Include=".gitignore" />
     <Content Include="config.ini" />
+    <Content Include="python-sheet-oauth.json">
+      <SubType>Code</SubType>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
