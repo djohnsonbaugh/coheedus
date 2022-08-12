@@ -3,6 +3,7 @@ from appConfig import appConfig
 import asyncio
 from multiprocessing import Queue
 from botCommand import botCommand
+import emoji
 
 #from discord.ext import commands
 GuildMessageQue:Queue = None
@@ -49,7 +50,7 @@ async def on_message(message):
     if(message.channel.id == GuildChatChannel.id):
         sender = message.author.nick if message.author.nick is not None else message.author.name
         mes:str = message.clean_content
-        mes.replace("🙂",":)")
+        mes = emoji.demojize(mes)
         eventNewDiscordMessage(sender, mes)
     return
 
@@ -69,7 +70,8 @@ async def ProcessGuildMessageQue():
             try:
                 cmd = GuildMessageQue.get_nowait()
                 if(cmd.Sender == "Everquest"):
-                    await GuildChatChannel.send(cmd.Text)
+                    mes:str = emoji.emojize(cmd.Text)
+                    await GuildChatChannel.send(mes)
                 else:
                     await GuildChatChannel.send("<" + cmd.Sender + "> " + cmd.Text)
             except:
