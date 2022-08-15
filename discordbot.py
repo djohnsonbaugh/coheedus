@@ -71,7 +71,7 @@ async def ProcessGuildMessageQue():
                 cmd = GuildMessageQue.get_nowait()
                 if(cmd.Sender == "Everquest"):
                     mes:str = emoji.emojize(cmd.Text)
-                    await GuildChatChannel.send(mes)
+                    await GuildChatChannel.send("__**" + mes + "**__")
                 else:
                     await GuildChatChannel.send("<" + cmd.Sender + "> " + cmd.Text)
             except:
