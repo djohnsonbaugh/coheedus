@@ -3,15 +3,19 @@ from os.path import exists
 import os
 import time
 from datetime import datetime
-import asyncio
+from multiprocessing import Queue
+import regexHelper
+from botCommand import botCommand
 
 class eqLog(object):
     """description of class"""
 
-    def __init__(self, conf:appConfig):
+    def __init__(self, conf:appConfig, cmdque, guildmessageque):
         self.character = conf.get("EVERQUEST","character","coheedus")
         self.server = conf.get("EVERQUEST","server","thornblade")
         self.eqDir = conf.get("EVERQUEST","eqdir","C:\Everquest")
+        self.CMDQue = cmdque
+        self.GuildMessageQue = guildmessageque
         return
 
     def getFileName(self, mod:str = "") ->str:
@@ -25,7 +29,20 @@ class eqLog(object):
             f.write("Log file reset at " + timestamp + ".\n")
         return
 
-    async def monitorLog(self, newLineFunc):
+    def eventNewLogLine(self,line:str):
+        cmd : botCommand = botCommand()
+        if regexHelper.isCommand(line, cmd):
+            print(line, end='')
+            self.CMDQue.put(cmd)
+        elif regexHelper.isGuildMessage(line, cmd):
+            print(line, end='')
+            self.GuildMessageQue.put(cmd)
+            print("I put" + str(cmd) + " in the que and the lenght is " + str(self.GuildMessageQue.qsize()))
+        #else:
+        #    print(line, end='')
+        return
+
+    def monitorLog(self):
         self.resetLogFile()
         with open(self.getFileName(), 'r') as file:
             line:str = ''
@@ -34,10 +51,10 @@ class eqLog(object):
                 if tmp is not None:
                     line += tmp
                     if line.endswith("\n"):
-                        await newLineFunc(line)
+                        self.eventNewLogLine(line)
                         line = ''
-                    else:
-                        await asyncio.sleep(0)
+                    #else:
+                    #    time
                 else: 
-                    await asyncio.sleep(0)
+                    time.sleep(1)
         return

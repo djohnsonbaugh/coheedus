@@ -1,18 +1,22 @@
 import discord
 from appConfig import appConfig
 import asyncio
-#from discord.ext import commands
+from multiprocessing import Queue
+from botCommand import botCommand
 
+#from discord.ext import commands
+GuildMessageQue:Queue = None
+CMDQue:Queue = None
 BotToken:str = ""
-DiscordClient:discord.client.Client = discord.Client()
+DiscordClient:discord.client.Client= discord.Client()
 GuildChatChannel = None
-NewMessageCallback = None
 #DiscordClient:discord.client.Client = commands.Bot(command_prefix = '!')
-def init(config: appConfig, newmessagecallback):
-    global BotToken, NewMessageCallback
+def init(config: appConfig, cmdque:Queue , guildmessageque:Queue):
+    global BotToken, GuildMessageQue, CMDQue
     BotToken = config.get("DISCORD", "bottoken", "")
-    NewMessageCallback = newmessagecallback
     #DiscordClient.run(BotToken)
+    GuildMessageQue = guildmessageque
+    CMDQue = cmdque
     return
 
 def getLoop():
@@ -32,24 +36,38 @@ async def on_ready():
         GuildChatChannel = discord.utils.get(guild.text_channels, name="guild-chat")
     return
 
+def eventNewDiscordMessage(sender:str, line:str):
+    cmd : botCommand = botCommand()
+    cmd.set(sender, "discord", line)
+    CMDQue.put(cmd)
+    return
+
 @DiscordClient.event
 async def on_message(message):
     if (GuildChatChannel is None or message.author.bot):
         return
     if(message.channel.id == GuildChatChannel.id):
         sender = message.author.nick if message.author.nick is not None else message.author.name
-        NewMessageCallback(sender, message.content.encode('utf8').decode("utf-8"))
+        eventNewDiscordMessage(sender, message.content)
     return
 
 def botReply(message:str):
 
     return
 
-async def newGuildMessageEvent(sender:str, message:str):
-    await GuildChatChannel.send("<" + sender + "> " + message)   
-    return
-
-
 async def startDiscordBot():
     await DiscordClient.start(BotToken)
+    return
+
+async def ProcessGuildMessageQue():
+    global GuildMessageQue
+    while True:
+        junk = GuildMessageQue.qsize()
+        if not GuildMessageQue.empty():
+            try:
+                cmd = GuildMessageQue.get_nowait()
+                await GuildChatChannel.send("<" + cmd.Sender + "> " + cmd.Text)
+            except:
+                print("Guild Message Que Get Error")
+        await asyncio.sleep(0)
     return

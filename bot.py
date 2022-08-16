@@ -6,14 +6,17 @@ import regexHelper
 from auctioneer import Auctioneer
 import asyncio
 import re
+from multiprocessing import Queue
 oDKP : openDKP = None
 
 DiscordReplyCallBack = None
+CommandQue:Queue =None
 
-def init(config: appConfig, discordreply):
-    global oDKP
+def init(config: appConfig, cmdque:Queue, discordreply):
+    global oDKP, CommandQue
     oDKP = openDKP(config)
     DiscordReplyCallBack = discordreply
+    CommandQue = cmdque
     return
 
 AucMaster:Auctioneer = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3)
@@ -313,8 +316,16 @@ def execute(cmd: botCommand):
         reply(cmd, "?")
     return
 
-async def runAuctioneer():
+def runAuctioneer():
     while True:
+        if not CommandQue.empty():
+            try:
+                cmd = CommandQue.get_nowait()
+                execute(cmd)
+            except Empty:
+                print("Command Que Empty Exception")
+            except:
+                print("Command Que Get Error")
         AucMaster.Announce()
-        await asyncio.sleep(0)
+#        time.sleep(0.1)
     return

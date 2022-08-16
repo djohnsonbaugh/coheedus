@@ -6,37 +6,37 @@ from eqLog import eqLog
 import regexHelper
 import test
 import discordbot
-
-#####################################
-#Events##############################
-#####################################
-async def eventNewLogLine(line:str):
-    cmd : botCommand = botCommand()
-    if regexHelper.isCommand(line, cmd):
-        bot.execute(cmd)
-    elif regexHelper.isGuildMessage(line, cmd):
-        await discordbot.newGuildMessageEvent(cmd.Sender, cmd.Text)
-    else:
-        print(line, end='')
-
-def eventNewDiscordMessage(sender:str, line:str):
-    cmd : botCommand = botCommand()
-    cmd.set(sender, "discord", line)
-    bot.execute(cmd)
-    return
+import asyncio
+import gsheets
+from multiprocessing import Process, Queue
 
 #####################################
 #Read Config and Set Globals#########
 #####################################
-print("Loading Config...")
-
-conf: appConfig = appConfig()
-eqApp.initConfig(conf)
-bot.init(conf, discordbot.botReply)
-log: eqLog = eqLog(conf)
-discordbot.init(conf, eventNewDiscordMessage)
-print("Config Loaded.")
+if __name__ == "__main__":
+    conf: appConfig = appConfig()
+    GuildMessageQue:Queue = Queue()
+    CommandQue:Queue = Queue()
+    discordbot.init(conf, CommandQue, GuildMessageQue)
+    print("Loading Config...")
+    gsheets.init()
+    eqApp.initConfig(conf)
+    print("Config Loaded.")
 #####################################
+
+#####################################
+#Processes##############################
+#####################################
+
+def processAuctioneer(conf:appConfig, CommandQue: Queue):
+    bot.init(conf, CommandQue, None)
+    bot.runAuctioneer()
+    return
+
+def processFileMonitor(conf:appConfig, CommandQue: Queue, GuildQue: Queue):
+    log: eqLog = eqLog(conf, CommandQue, GuildQue)
+    log.monitorLog()
+    return
 
 #####################################
 #Main##############################
@@ -44,24 +44,28 @@ print("Config Loaded.")
 def main():
     print("Program starting....")
 
-    #Have to use the discord internal discord asyncio loop instead of our own
+    print("Log Process Starting...")
+    p = Process(target=processFileMonitor,args=(conf,CommandQue, GuildMessageQue))
+    p.start()
+    print("Log Process Started.")
+
+    print("Auctioneer Process Starting...")
+    Process(target=processAuctioneer,args=(conf,CommandQue)).start()
+    print("Aunctioneer Process Started.")
+
     loop = discordbot.getLoop()
 
     print("Tests Starting...")
     loop.create_task(test.test())
     print("Tests Started.")
 
-    print("Monitoring Starting....")
-    loop.create_task(log.monitorLog(eventNewLogLine))
-    print("Monitoring Started.")
-
-    print("Auctioneer Starting....")
-    loop.create_task(bot.runAuctioneer())
-    print("Auctioneer Started.")
+    print("Guild Message Que Monitor Starting...")
+    loop.create_task(discordbot.ProcessGuildMessageQue())
+    print("Guild Message Que Monitor Started.")
 
     print("Discord Bot Starting...")
     discordbot.start()
-    
     return
 
-main()
+if __name__ == "__main__":
+    main()

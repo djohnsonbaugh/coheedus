@@ -12,6 +12,7 @@
 config.ini
 env/
 env1/
+python-sheet*.json
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

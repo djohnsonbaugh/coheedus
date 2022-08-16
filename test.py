@@ -14,7 +14,7 @@ async def test():
     #######################
     
     #print("Bigrax DKP is " + oDKP.getDKP("Bigrax").__str__())
-
+    print("test would have run..")
     while True:
         #TEST Repetetive Calls Here
         ###########################

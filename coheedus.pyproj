@@ -51,6 +51,9 @@
     <Compile Include="eqLog.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="gsheets.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="openDKP.py">
       <SubType>Code</SubType>
     </Compile>
