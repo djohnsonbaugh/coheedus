@@ -6,7 +6,7 @@ aucIdCmdsPtrn = re.compile("(?i)^\s*(?P<aucId>all|\d+)\s+(?P<cmdType>award|pause
 bidWithIDPtrn = re.compile("^\s*(?P<aucId>\d+)\s*(\s|@)\s*?(?P<bidVal>\d+)(\s+(?P<bidMax>\d+))?(\s+(?P<bidInc>-?[\d]+))?(\s*(?P<proxyToon>\w+))?")
 bidWithItemPtrn = re.compile("^\s*(?P<aucItem>[^\n\r@<>[\]{}$~_]*[a-zA-Z][^\n\r@<>[\]{}$~_]*?)\s*@\s*(?P<bidVal>\d+)(\s+(?P<bidMax>\d+))?(\s+(?P<bidInc>-?[\d]+))?(\s*(?P<proxyToon>\w+))?")
 guildMessagePattern = re.compile("\[[\w\d: ]+\]\s(\w+)\stells\sthe\sguild,\s'(.*)'")
-achievementPattern = re.compile("\[[\w\d: ]+\]\s+Your\sguildmate\s+(\w*\s+has\scompleted.*(Alternate\sAdvancement|Epic|Level).*achievement\.)")
+achievementPattern = re.compile("\[[\w\d: ]+\]\s+Your\sguildmate\s+(\w*\s+has\scompleted.*(Alternate\sAdvancement|Reign|Keeper|Hunter|Epic|Level).*achievement\.)")
 
 def isCommand(line:str, cmd: botCommand) -> bool:
     if(commandPattern.match(line)):

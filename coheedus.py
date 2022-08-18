@@ -21,7 +21,6 @@ if __name__ == "__main__":
     CommandQue:Queue = Queue()
     discordbot.init(conf, CommandQue, GuildMessageQue)
     print("Loading Config...")
-    gsheets.init()
     eqApp.initConfig(conf)
     print("Config Loaded.")
 #####################################

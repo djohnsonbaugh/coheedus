@@ -10,6 +10,7 @@ from multiprocessing import Queue
 from datetime import datetime, timedelta
 import time
 import winOS
+import gsheets
 oDKP : openDKP = None
 
 DiscordReplyCallBack = None
@@ -20,6 +21,7 @@ def init(config: appConfig, cmdque:Queue, discordreply):
     oDKP = openDKP(config)
     DiscordReplyCallBack = discordreply
     CommandQue = cmdque
+    gsheets.init()
     return
 
 AucMaster:Auctioneer = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3)
@@ -79,6 +81,43 @@ AdminUsages['admin'] = \
 def exAdmin(cmd: botCommand) -> str:
     AucMaster.AdminChannel = cmd.Channel
     return "Admin Commands & Messages Here"
+
+Usages['don'] = \
+"Usage: !DoN flagname [value=True] [toon name=sender]"+\
+"DoN flag update: Use this command to update the DoN progression spreadsheet by providing the flag name i.e. 'T1', 'T2G2' 'T3R1' from the 4th row"
+def exDoN(cmd: botCommand) -> str:
+    name        = cmd.Sender
+    if(cmd.ParCount <1):
+        return "Please provide the flag name from the 4th row of the spreadsheet i.e. !don flagname"
+    flag = cmd.Params[1].strip()
+    value = None
+    if(cmd.ParCount > 1):
+        if (cmd.Params[2] == "0" or cmd.Params[2].upper() == "FALSE"):
+            value = False
+        elif cmd.Params[2] == "1" or cmd.Params[2].upper() == "TRUE":
+            value = True
+        else:
+            name = cmd.Params[2]
+    if (cmd.ParCount > 2):
+        name = cmd.Params[3]
+
+    if(value is None):
+        status:bool = gsheets.getFlagStatus(name, flag)
+        if(status is None):
+            return "The flag " + flag + " or the character " + name + " was not found in the records."
+        else:
+            if(status):
+                return name + " does have " + flag + " complete."
+            else:
+                return name + " does NOT have " + flag + " complete."
+    else:
+        status = gsheets.setFlagStatus(name, flag, value)
+        if(status):
+            return name +"'s " + flag + " has been updated successfully."
+        else:
+            return "The flag " + flag + " or the character " + name + " was not found in the records."
+
+    return "something went horribly wrong."
 
 Usages['dkp'] = \
 "Usage: !dkp [toon name=sender]"+\
@@ -271,6 +310,7 @@ cmdRegistration = {
     "Normal" : {
         "ADMIN"                     : exAdmin,
         "DKP"                       : exDKP,
+        "DON"                       : exDoN,
         "HELP"                      : exHelp,
         "RAID"                      : exRaid,
         "STATUS"                    : exStatus,
@@ -325,9 +365,9 @@ def runAuctioneer():
         if not CommandQue.empty():
             try:
                 cmd = CommandQue.get_nowait()
-                execute(cmd)
             except:
-                print("Command Que Get Error")
+                print("Command Que Get Error: " + str(cmd))
+            execute(cmd)
         messagecount = AucMaster.Announce()
         if messagecount == 0 and datetime.now() - last > timedelta(minutes=5):
             time.sleep(3)

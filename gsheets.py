@@ -1,33 +1,22 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pprint
+import re
 
 SS:gspread.Spreadsheet = None
 WS:gspread.Worksheet = None
 
 def getFlagCell(name:str, flag:str) -> gspread.Cell:
-    row = 1
-    col = 1
-    for row in range (1,WS.row_count):
-        data = WS.cell(row,col).value
-        if data == "Name":
-            break
-        row += 1
-    for col in range (1,WS.col_count):
-        data = WS.cell(row,col).value
-        if data == flag:
-            break
-        col += 1
-    for row in range (row +1 ,WS.row_count):
-        data = WS.cell(row,1).value
-        if data == name:
-            return WS.cell(row,col)
-        row += 1
-    return None
+    rowcell = WS.find(re.compile("(?i)^"+ name + "$"))
+    colcell = WS.find(re.compile("(?i)^"+ flag + "$"))
+    if rowcell is None or colcell is None:
+        return None
+    return WS.cell(rowcell.row, colcell.col)
 
 def getFlagStatus(name:str, flag:str) -> bool:
+    print("Try to get flag status for " + name + "for" + flag)
     cell:gspread.Cell = getFlagCell(name,flag)
-    if(cell is None): return False
+    if(cell is None): return None
     return True if (cell.value == "TRUE") else False
 
 def setFlagStatus(name:str, flag:str, value:bool) -> bool:
