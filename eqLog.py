@@ -39,6 +39,12 @@ class eqLog(object):
             self.GuildMessageQue.put(cmd)
         elif regexHelper.isGuildAchievement(line,cmd):
             self.GuildMessageQue.put(cmd)
+            if "Keeper" in line or "Reign" in cmd.Text:
+                aacmd = botCommand()
+                parts = cmd.Text.split(' ')
+                aacmd.set(parts[0],"you","aa " + cmd.Text)
+                self.CMDQue.put(aacmd)
+
         #else:
         #    print(line, end='')
         return

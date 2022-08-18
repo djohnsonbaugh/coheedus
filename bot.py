@@ -74,6 +74,23 @@ def exBid(cmd: botCommand) ->str:
             return "Auctions do not exist but I if it did you would have bid on item:" + aucItem
     return AucMaster.AddBid(aucId, sender, bidder, aucItem, oDKP.getDKP(bidder), bidVal, bidMax, bidInc)
 
+def exAA(cmd: botCommand)->str:
+    name = cmd.Sender
+    aa = cmd.Text
+    success = False
+    if "Gift" in aa:
+        success = gsheets.setFlagStatusAll(name, "T1", 4)
+    elif "Tenacity" in aa or "Valor" in aa:
+        success = gsheets.setFlagStatusAll(name, "T2", 5)
+    elif "Embrace" in aa:
+        success = gsheets.setFlagStatusAll(name, "T3", 6)
+    elif "Power" in aa:
+        success = gsheets.setFlagStatusAll(name, "T4", 3)
+    elif "Fervor" in aa or "Sanctity" in aa:
+        success = gsheets.setFlagStatusAll(name, "T5", 3)
+        
+    return "Flags for " + name + " have been updated in the guild spreadsheet. Congratz!" if success else ""
+
 AdminUsages['admin'] = \
 "Usage: !admin\n"+\
 "Admin command: Type this command in the channel you want to enable to send admin commands and receive admin messages"+\
@@ -311,6 +328,7 @@ cmdRegistration = {
         "ADMIN"                     : exAdmin,
         "DKP"                       : exDKP,
         "DON"                       : exDoN,
+        "AA"                        : exAA,
         "HELP"                      : exHelp,
         "RAID"                      : exRaid,
         "STATUS"                    : exStatus,

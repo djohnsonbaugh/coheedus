@@ -25,6 +25,13 @@ def setFlagStatus(name:str, flag:str, value:bool) -> bool:
     WS.update_cell(cell.row, cell.col,"TRUE" if value else "FALSE")
     return True
 
+def setFlagStatusAll(name:str, flag:str, count:int) -> bool:
+    cell:gspread.Cell = getFlagCell(name,flag)
+    if(cell is None): return False
+    for i in range (5,cell.col+1):
+        WS.update_cell(cell.row, i,"TRUE")
+    return True
+
 def init():
     global SS, WS
     #Authorize the API
