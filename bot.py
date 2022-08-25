@@ -1,4 +1,4 @@
-import eqApp
+#import eqApp
 from appConfig import appConfig
 from openDKP import openDKP
 from botCommand import botCommand
@@ -15,16 +15,19 @@ oDKP : openDKP = None
 
 DiscordReplyCallBack = None
 CommandQue:Queue =None
+EQMessageQue:Queue=None
+AucMaster:Auctioneer = None
 
-def init(config: appConfig, cmdque:Queue, discordreply):
-    global oDKP, CommandQue
+def init(config: appConfig, cmdque:Queue, eqmessage:Queue):
+    global oDKP, CommandQue, EQMessageQue, AucMaster
     oDKP = openDKP(config)
-    DiscordReplyCallBack = discordreply
+    DiscordReplyCallBack = None #discordreply
     CommandQue = cmdque
+    EQMessageQue = eqmessage
     gsheets.init()
+    AucMaster = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3, eqmessage= EQMessageQue)
     return
 
-AucMaster:Auctioneer = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3)
 BotDebug:bool   = False
 Usages = {}
 AdminUsages = {}
@@ -352,9 +355,10 @@ cmdRegistration = {
 def reply(cmd: botCommand, message: str):
     messages = message.split("\n")
     for line in messages:   
-        if(cmd.Channel == "you"): eqApp.tell(cmd.Sender, line)
+        if(cmd.Channel == "you"): EQMessageQue.put(("tell " + cmd.Sender, line))
         elif(cmd.Channel == "discord"): DiscordReplyCallBack(line)
-        else: eqApp.sendMessage(cmd.Channel, line)
+        else: EQMessageQue.put((cmd.Channel, line))
+        #else: eqApp.sendMessage(cmd.Channel, line)
     return
 
 def execute(cmd: botCommand):

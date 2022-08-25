@@ -16,15 +16,16 @@ class botCommand(object):
         self.Text = text
         self.Params: [str] = []
         self.regMatch:re.Match = None
-        params: [str] = text.split(' ')
+        params: [str] = text.split(' ') if text is not None else []
+
         for param in params:
             self.Params.append(param.strip())
-        self.Cmd:str = self.Params[0].upper()
+        self.Cmd:str = self.Params[0].upper() if len(self.Params) > 0 else ""
         self.ParCount: int = len(self.Params)- 1
         return
 
     def __str__(self):
-        return self.Sender + "(" +self.Channel + ") " + self.Text
+        return self.Sender + "(" +self.Channel + ") " + (self.Text if self.Text is not None else "")
 
     def __repr__(self):
-        return self.Sender + "(" +self.Channel + ") " + self.Text
+        return self.Sender + "(" +self.Channel + ") " + (self.Text if self.Text is not None else "")

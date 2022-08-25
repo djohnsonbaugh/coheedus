@@ -19,9 +19,11 @@ if __name__ == "__main__":
     conf: appConfig = appConfig()
     GuildMessageQue:Queue = Queue()
     CommandQue:Queue = Queue()
+    EQMessageQue:Queue = Queue()
+    EQMessageVerificationQue:Queue = Queue()
     discordbot.init(conf, CommandQue, GuildMessageQue)
     print("Loading Config...")
-    eqApp.initConfig(conf)
+    #eqApp.initConfig(conf)
     print("Config Loaded.")
 #####################################
 
@@ -29,13 +31,18 @@ if __name__ == "__main__":
 #Processes##############################
 #####################################
 
-def processAuctioneer(conf:appConfig, CommandQue: Queue):
-    bot.init(conf, CommandQue, None)
+def processAuctioneer(conf:appConfig, CommandQue: Queue, EQMessageQue:Queue):
+    bot.init(conf, CommandQue, EQMessageQue)
     bot.runAuctioneer()
     return
 
-def processFileMonitor(conf:appConfig, CommandQue: Queue, GuildQue: Queue):
-    log: eqLog = eqLog(conf, CommandQue, GuildQue)
+def processEQMessenger(conf:appConfig, EQMessageQue: Queue, EQMessageVerificationQue: Queue):
+    eqApp.init(conf, EQMessageQue, EQMessageVerificationQue)
+    eqApp.runEQMessagePaster()
+    return
+
+def processFileMonitor(conf:appConfig, CommandQue: Queue, GuildQue: Queue, EQMessageVerificationQue:Queue):
+    log: eqLog = eqLog(conf, CommandQue, GuildQue, EQMessageVerificationQue)
     log.monitorLog()
     return
 
@@ -45,16 +52,22 @@ def processFileMonitor(conf:appConfig, CommandQue: Queue, GuildQue: Queue):
 def main():
     print("Program starting....")
     print("Log Process Starting...")
-    p = Process(target=processFileMonitor,args=(conf,CommandQue, GuildMessageQue))
+    p = Process(target=processFileMonitor,args=(conf,CommandQue, GuildMessageQue,EQMessageVerificationQue))
     p.start()
     processes.append(p)
     print("Log Process Started.")
 
     print("Auctioneer Process Starting...")
-    p = Process(target=processAuctioneer,args=(conf,CommandQue))
+    p = Process(target=processAuctioneer,args=(conf,CommandQue, EQMessageQue))
     p.start()
     processes.append(p)
     print("Aunctioneer Process Started.")
+
+    print("EQ Messenger Process Starting...")
+    p = Process(target=processEQMessenger,args=(conf,EQMessageQue,EQMessageVerificationQue))
+    p.start()
+    processes.append(p)
+    print("EQ Messenger Process Started.")
 
     loop = discordbot.getLoop()
 

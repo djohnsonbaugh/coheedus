@@ -3,7 +3,7 @@ from openDKP import openDKP
 import eqApp
 from appConfig import appConfig
 import asyncio
-
+import amz
 oDKP: openDKP = None
 
 async def test():
@@ -12,9 +12,10 @@ async def test():
 
     #TEST Single Calls HERE
     #######################
-    
+    #amz.postStuff()
     #print("Bigrax DKP is " + oDKP.getDKP("Bigrax").__str__())
     print("test would have run..")
+
     while True:
         #TEST Repetetive Calls Here
         ###########################

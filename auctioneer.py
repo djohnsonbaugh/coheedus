@@ -1,28 +1,30 @@
 from auction import Auction
 from bid import Bid
-import eqApp
+from multiprocessing import Queue
+#import eqApp
 from datetime import datetime, timedelta
 class Auctioneer(object):
     """description of class"""
 
-    def __init__(self,auctionchan:str, maxactiveauctions:int):
+    def __init__(self,auctionchan:str, maxactiveauctions:int, eqmessage:Queue):
         self.__aucchan = auctionchan
         self.__adminchan = ""
         self.__maxaucs = maxactiveauctions
         self.__auctions:{int,Auction} = {}
         self.__auccount = 0
+        self.__EQMessageQue = eqmessage
 
         return
     def SendAuctionMessage(self, message:str):
-        eqApp.sendMessage(self.__aucchan, message)
+        self.__EQMessageQue.put((self.__aucchan, message))
         return
     def SendAdminMessage(self, message:str):
-        eqApp.sendMessage(self.__adminchan, message)
+        self.__EQMessageQue.put((self.__adminchan, message))
         return
     def NotifyBidder(self, bid:Bid, marginalbid:int):
-        eqApp.tell(bid.Sender, bid.GetNotificationAndClear(marginalbid))
+        self.__EQMessageQue.put(("tell " + bid.Sender, bid.GetNotificationAndClear(marginalbid)))
     def NotifyProxyBidder(self, bid:Bid):
-        eqApp.tell(bid.Bidder, bid.GetProxyNotification())
+        self.__EQMessageQue.put(("tell " + bid.Bidder, bid.GetProxyNotification()))
 
     @property
     def IDAll(self)->int: return -300

@@ -11,12 +11,13 @@ from botCommand import botCommand
 class eqLog(object):
     """description of class"""
 
-    def __init__(self, conf:appConfig, cmdque, guildmessageque):
+    def __init__(self, conf:appConfig, cmdque, guildmessageque,eqmessage):
         self.character = conf.get("EVERQUEST","character","coheedus")
         self.server = conf.get("EVERQUEST","server","thornblade")
         self.eqDir = conf.get("EVERQUEST","eqdir","C:\Everquest")
         self.CMDQue = cmdque
         self.GuildMessageQue = guildmessageque
+        self.EQMessageVerificationQue = eqmessage
         return
 
     def getFileName(self, mod:str = "") ->str:
@@ -35,6 +36,9 @@ class eqLog(object):
         if regexHelper.isCommand(line, cmd):
             print(line, end='')
             self.CMDQue.put(cmd)
+        elif regexHelper.isEQBotMessage(line,cmd):
+            #print("something happend: " + str(cmd)) 
+            self.EQMessageVerificationQue.put(cmd)
         elif regexHelper.isGuildMessage(line, cmd):
             self.GuildMessageQue.put(cmd)
         elif regexHelper.isGuildAchievement(line,cmd):
