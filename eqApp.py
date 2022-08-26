@@ -18,8 +18,9 @@ PasteKeyCtrl:bool = True
 PasteKeyAlt:bool = False
 EQMessageQue:Queue=None
 EQMessageVerificationQue:Queue=None
+PlayerName = ""
 def init(config: appConfig, eqmessage:Queue, eqmessageverify:Queue):
-    global EQWindowName,EQMessageQue,EQMessageVerificationQue
+    global EQWindowName,EQMessageQue,EQMessageVerificationQue, PlayerName
     global PasteKey, PasteKeyCtrl, PasteKeyShift, PasteKeyAlt
     EQWindowName = config.get("EVERQUEST", "appName", EQWindowName)
     pkey:str = config.get("EVERQUEST","pasteKey", PasteKey.name)
@@ -29,6 +30,7 @@ def init(config: appConfig, eqmessage:Queue, eqmessageverify:Queue):
     PasteKeyAlt = config.getBool("EVERQUEST","pasteKeyAlt", PasteKeyAlt)
     EQMessageQue= eqmessage
     EQMessageVerificationQue = eqmessageverify
+    PlayerName = config.get("EVERQUEST", "character", "Coheedus")
     return
      
 
@@ -85,17 +87,6 @@ def runEQMessagePaster():
             print("cursor reset...")
             winOS.toggleWindowForFunction(EQWindowName, resetCursor, "")
             inerror = 0
-        elif not EQMessageQue.empty():
-            chan = ""
-            try:
-                chan,message = EQMessageQue.get_nowait()
-            except:
-                print("EQ Message Que Get Error: " + str(cmd))
-            if chan != "":
-                sendMessage(chan,message)
-                d = datetime.now()
-                messages.append((chan,message,d))
-                print("added eq message: " + chan + "->" + message + "(" + str(d) + ")")
         elif not EQMessageVerificationQue.empty():
             chan = ""
             cmd:botCommand = None
@@ -124,6 +115,20 @@ def runEQMessagePaster():
                         found = True
                         print("message verified!!!: " + chan + "->" + message + "(" + str(d) + ")")
                 messages = unfoundmessages
+        elif not EQMessageQue.empty():
+            chan = ""
+            try:
+                chan,message = EQMessageQue.get_nowait()
+            except:
+                print("EQ Message Que Get Error: " + str(cmd))
+            if chan != "":
+                #skip tells to myself
+                if chan.lower() == "tell " + PlayerName.lower():
+                    continue
+                sendMessage(chan,message)
+                d = datetime.now()
+                messages.append((chan,message,d))
+                print("added eq message: " + chan + "->" + message + "(" + str(d) + ")")
         elif len(messages) > 0:
             unfoundmessages = []
             for chan,message,d in messages:
