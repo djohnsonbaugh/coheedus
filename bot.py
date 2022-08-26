@@ -311,8 +311,10 @@ def exRaid(cmd: botCommand) -> str:
 #"Usage: !raid ["+raidOpts+"]\n"+\
 #"Raid : Use this command print raid fight strat summaries and cheat sheets\n"
 def exRod(cmd: botCommand) -> str:
-    winOS.pushKey(winKey.kM)
-    return ""
+    if PlayerName.lower() == "coheedus":
+        winOS.pushKey(winKey.kM)
+        return ""
+    return "?"
 
 adminHelpOpts = ""
 for i, k in enumerate(sorted(AdminUsages.keys())):

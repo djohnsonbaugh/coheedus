@@ -3,7 +3,6 @@ from openDKP import openDKP
 import eqApp
 from appConfig import appConfig
 import asyncio
-import amz
 oDKP: openDKP = None
 
 async def test():
