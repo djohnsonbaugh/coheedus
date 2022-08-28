@@ -79,8 +79,18 @@ def tell(name: str, message: str):
     sendMessage("tell " + name, message)
     return
 
+class EQMessage(object):
+
+    def __init__(self, message:str, chan:str):
+        self.Message = message
+        self.Channel = chan
+        self.Count = 1
+        self.LastAttempt = datetime.now()
+
+
+
 def runEQMessagePaster():
-    messages = []
+    messages:[EQMessage] = []
     inerror = 0
     while winOS.isParentAlive():
         if inerror >= 4:
@@ -90,7 +100,7 @@ def runEQMessagePaster():
         elif not EQMessageVerificationQue.empty():
             chan = ""
             cmd:botCommand = None
-            unfoundmessages = []
+            unfoundmessages:[EQMessage] = []
             try:
                 cmd = EQMessageVerificationQue.get_nowait()
             except:
@@ -98,22 +108,22 @@ def runEQMessagePaster():
             if cmd is not None:
                 print("verifing message: " + str(cmd))
                 found = False
-                for chan,message,d in messages:
+                for message in messages:
                     if cmd.Text is None:
                         #print("found bad message does '" + "tell " + cmd.Sender.lower() + "!=" +  chan.lower())
-                        if "tell " + cmd.Sender.lower() != chan.lower():
-                            unfoundmessages.append((chan,message,d))
+                        if "tell " + cmd.Sender.lower() != message.Channel.lower():
+                            unfoundmessages.append(message)
                         else:
                             inerror = 0
                             found = True
-                            print("message verified but NOT ONLINE!!!: " + chan + "->" + message + "(" + str(d) + ")")
-                    elif cmd.Text.strip() != message.strip() or found:
+                            print("message verified but NOT ONLINE!!!: " + message.Channel + "->" + message.Message + "(" + str(message.LastAttempt) + ")")
+                    elif cmd.Text.strip() != message.Message.strip() or found:
                         #print("failed match:'" + cmd.Text + "!=" +  message)
-                        unfoundmessages.append((chan,message,d))
+                        unfoundmessages.append(message)
                     else:
                         inerror = 0
                         found = True
-                        print("message verified!!!: " + chan + "->" + message + "(" + str(d) + ")")
+                        print("message verified!!!: " + message.Channel + "->" + message.Message + "(" + str(message.LastAttempt) + ")")
                 messages = unfoundmessages
         elif not EQMessageQue.empty():
             chan = ""
@@ -127,17 +137,20 @@ def runEQMessagePaster():
                     continue
                 sendMessage(chan,message)
                 d = datetime.now()
-                messages.append((chan,message,d))
+                messages.append(EQMessage(message,chan))
                 print("added eq message: " + chan + "->" + message + "(" + str(d) + ")")
         elif len(messages) > 0:
-            unfoundmessages = []
-            for chan,message,d in messages:
-                if datetime.now() -d > timedelta(seconds=5):
-                    EQMessageQue.put((chan,message))
-                    print("message retry!!!: " + chan + "->" + message)
+            unfoundmessages:[EQMessage] = []
+            for message in messages:
+                if(message.Count >= 5):
+                    continue
+                if datetime.now() -message.LastAttempt > timedelta(seconds=7):
+                    message.Count += 1
+                    EQMessageQue.put((message.Channel,message.Message))
+                    print("message retry!!!: " + message.Channel + "->" + message.Message)
                     inerror += 1
                 else:
-                    unfoundmessages.append((chan,message,d))
+                    unfoundmessages.append(message)
                 messages = unfoundmessages
         else:
             time.sleep(2)
