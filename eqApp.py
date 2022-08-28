@@ -86,6 +86,7 @@ class EQMessage(object):
         self.Channel = chan
         self.Count = 1
         self.LastAttempt = datetime.now()
+        self.Retry = False
 
 
 
@@ -146,7 +147,7 @@ def runEQMessagePaster():
                     continue
                 if datetime.now() -message.LastAttempt > timedelta(seconds=7):
                     message.Count += 1
-                    EQMessageQue.put((message.Channel,message.Message))
+                    sendMessage(message.Channel,message.Message)
                     print("message retry!!!: " + message.Channel + "->" + message.Message)
                     inerror += 1
                 else:
