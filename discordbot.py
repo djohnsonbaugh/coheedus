@@ -51,7 +51,7 @@ async def on_message(message):
         sender = message.author.nick if message.author.nick is not None else message.author.name
         mes:str = message.clean_content
         mes = emoji.demojize(mes)
-        eventNewDiscordMessage(sender, mes.encode("utf-8"))
+        eventNewDiscordMessage(sender, mes.encode("utf-8").decode("utf-8", "strict"))
     return
 
 def botReply(message:str):
