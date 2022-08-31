@@ -23,9 +23,6 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="amz.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="appConfig.py">
       <SubType>Code</SubType>
     </Compile>
