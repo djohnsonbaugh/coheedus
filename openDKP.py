@@ -1,5 +1,7 @@
 from urllib import response
 import requests, json
+from Models.API_CharacterInfo import ApiCharInfo
+from Models.API_Raid import ApiRaid
 from Models.API_RaidTemplate import ApiRaidTemplate
 from appConfig import appConfig
 from enum import Enum
@@ -18,7 +20,7 @@ class openDKP(object):
     """description of class"""
     def __init__(self, conf:appConfig):
         self.clientID = conf.get("OPENDKP","clientid","") 
-        self.urls :[str] = []
+        # self.urls :[str] = []
         self.raidTemplateName = conf.get("OPENDKP","raidtemplate","") 
         for url in oDKPURL:
             self.urls.append(conf.get("OPENDKPAPIURLS",url.name,""))
@@ -102,6 +104,12 @@ class openDKP(object):
             if(row["CharacterName"] == name):
                 return row["CurrentDKP"]
         return
+    def getCharacterInfo(self, name:str) -> ApiCharInfo:
+        trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value]).text)["Models"]
+        for row in trashjson:
+            if(row["CharacterName"] == name):
+                return ApiCharInfo.from_json(row)
+        return
 
     def loadRaidTemplate(self):
         url = "https://4jmtrkwc86.execute-api.us-east-2.amazonaws.com/beta/admin/settings/raid_templates"
@@ -115,7 +123,7 @@ class openDKP(object):
         return
 
 
-    def loadRaidTemplate2(self):
+    def loadRaidTemplate2(self) -> ApiRaidTemplate:
         url = "https://4jmtrkwc86.execute-api.us-east-2.amazonaws.com/beta/admin/settings/raid_templates"
 
         responseString = json.loads(self.session.get(url).text)["SettingValue"]
@@ -127,12 +135,22 @@ class openDKP(object):
                 return template
         return
 
-# Item Lookup
-#https://72rv4f6y1f.execute-api.us-east-2.amazonaws.com/beta/items/autocomplete?item=Helm of flowing&limit=5&game=0
-    
+    def pushRaid(raid:ApiRaid):
+
+        return
 
 
+    # Item Lookup
+    #https://72rv4f6y1f.execute-api.us-east-2.amazonaws.com/beta/items/autocomplete?item=Helm of flowing&limit=5&game=0
+    # Returns "ItemName":"Blade of War","ItemID":25989,"GameItemId":25989}
+    def lookupItem(self, itemName:str):
+        url = "https://72rv4f6y1f.execute-api.us-east-2.amazonaws.com/beta/items/autocomplete?item=" + itemName + "&limit=5&game=0"
 
+        responseItems = json.loads(self.session.get(url).text)
+        for row in responseItems:
+            return row
+        return
+        
 
 # Key derivation functions. See:
 # http://docs.aws.amazon.com/general/latest/gr/signature-v4-examples.html#signature-v4-examples-python

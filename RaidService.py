@@ -1,3 +1,5 @@
+from unicodedata import decimal
+from Models.API_CharacterInfo import ApiCharInfo
 from Models.API_Item import ApiItem
 from Models.API_RaidTick import ApiRaidTick
 from .openDKP import openDKP
@@ -10,7 +12,9 @@ class RaidService (object):
     def __init__(self, oDKP):
         self.__savepoint: ApiRaid = None
         self.__currentRaid:ApiRaid = None
-        self.oDKP : oDKP
+        self.oDKP : openDKP = oDKP
+        self.alertMessages: str[] = []
+        self.charIdDict :dict = []
 
     
     def checkCurrentRaid(self) -> bool:
@@ -37,20 +41,18 @@ class RaidService (object):
         return
 
   
-    def addItems(self, charName, dkpAmt, itemName, notes, pushRaid):
-        self.checkCurrentRaid()
-
-        #TODO Figure out req params.
+    def addItems(self, charName:str, dkpAmt:decimal, itemName:str, notes:str, pushRaid:bool):
+        self.checkCurrentRaid()           
         item = ApiItem()
-        item.CharacterName = ""
-        item.DkpValue = 0.0   #DKP Spent
-        item.ItemName = ""
+        item.CharacterName = charName
+        item.IdCharacter = self.lookupCharId(charName=charName) #TODO need to lookup character Id
+        item.DkpValue = dkpAmt   #DKP Spent
+        item.ItemName = itemName
         item.Notes = '' if notes == None else notes # Auction ID?
 
-        
-        ##TODO look up item too get Id
-        item.GameItemId = -1
-        item.ItemID = -1
+        itemResponse = self.oDKP.lookupItem(itemName=itemName)
+        item.GameItemId = itemResponse["GameItemId"]
+        item.ItemID = itemResponse["ItemID"]
 
         self.__currentRaid.Items.append(item)
 
@@ -59,15 +61,23 @@ class RaidService (object):
 
         return
 
-    #TODO figure out required parameters
+    
     def createRaidTick(self, tickDescription, dkpValue, attendees:str[],  pushRaid:bool):
         self.checkCurrentRaid()
+        newTick = ApiRaidTick()
+        for tick in self.__currentRaid.Ticks:
+            if (tick.Description == tickDescription):
+                newTick = tick
+                self.__currentRaid.Ticks.remove(tick)
+       
         
-        tick = ApiRaidTick()
-        tick.RaidId = self.__currentRaid.IdRaid
-        tick.Description = tickDescription
-        tick.Value = dkpValue
-        tick.Attendees = attendees.copy()
+        newTick.RaidId = self.__currentRaid.IdRaid
+        newTick.Description = tickDescription
+        newTick.Value = dkpValue
+        newTick.Attendees = attendees.copy()
+        
+        self.__currentRaid.Ticks.append(newTick)
+
         if(pushRaid == None or pushRaid):
             self.pushRaid()
         return
@@ -75,6 +85,22 @@ class RaidService (object):
     def pushRaid(self):
         """Push Raid to website"""
         self.checkCurrentRaid()
-
+        self.oDKP.pushRaid(self.__currentRaid)
         self.__savepoint = self.__currentRaid
         return
+
+    def lookupCharId(self, charName:str) -> int:
+        for key, value in self.charIdDict.items():
+            if(key == charName.upper()):
+                return value
+
+        charInfo: ApiCharInfo = self.oDKP.getCharacterInfo
+
+        if(charInfo != None):
+            self.charIdDict.update(charInfo.CharacterName, charInfo.IdCharacter)
+            return charInfo.IdCharacter
+
+        return -1
+    
+    def getLastSavePoint(self) -> ApiRaid:
+        return self.__savepoint
