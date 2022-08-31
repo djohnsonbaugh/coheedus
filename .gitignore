@@ -12,7 +12,6 @@
 config.ini
 env/
 env1/
-python-sheet*.json
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -365,6 +364,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /build
-/dist/coheedus
-/setup.py
+/python-sheet-oauth.json
 /coheedus.spec
+/setup.py
+/dist/coheedus
