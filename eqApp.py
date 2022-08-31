@@ -117,39 +117,41 @@ def runEQMessagePaster():
                         else:
                             inerror = 0
                             found = True
-                            print("message verified but NOT ONLINE!!!: " + message.Channel + "->" + message.Message + "(" + str(message.LastAttempt) + ")")
+                            print("message verified but NOT ONLINE!!!: " + message.Channel + "->'" + message.Message + "'(" + str(message.LastAttempt) + ")")
                     elif cmd.Text.strip() != message.Message.strip() or found:
                         #print("failed match:'" + cmd.Text + "!=" +  message)
                         unfoundmessages.append(message)
                     else:
                         inerror = 0
                         found = True
-                        print("message verified!!!: " + message.Channel + "->" + message.Message + "(" + str(message.LastAttempt) + ")")
+                        print("message verified!!!: " + message.Channel + "->'" + message.Message + "'(" + str(message.LastAttempt) + ")")
                 messages = unfoundmessages
         elif not EQMessageQue.empty():
             chan = ""
             try:
-                chan,message = EQMessageQue.get_nowait()
+                chan,eqmessage = EQMessageQue.get_nowait()
             except:
                 print("EQ Message Que Get Error: " + str(cmd))
             if chan != "":
                 #skip tells to myself
                 if chan.lower() == "tell " + PlayerName.lower():
                     continue
-                sendMessage(chan,message)
+                sendMessage(chan,eqmessage)
                 d = datetime.now()
-                messages.append(EQMessage(message,chan))
-                print("added eq message: " + chan + "->" + message + "(" + str(d) + ")")
+                messages.append(EQMessage(eqmessage,chan))
+                print("added eq message: " + chan + "->" + eqmessage + "(" + str(d) + ")")
         elif len(messages) > 0:
             unfoundmessages:[EQMessage] = []
             for message in messages:
-                if(message.Count >= 5):
+                if(message.Count >= 6):
                     continue
                 if datetime.now() -message.LastAttempt > timedelta(seconds=7):
                     message.Count += 1
+                    message.LastAttempt = datetime.now()
                     sendMessage(message.Channel,message.Message)
-                    print("message retry!!!: " + message.Channel + "->" + message.Message)
+                    print("message retry!!!: " + message.Channel + "->'" + message.Message + "' the count is " + str(message.Count))
                     inerror += 1
+                    unfoundmessages.append(message)
                 else:
                     unfoundmessages.append(message)
                 messages = unfoundmessages

@@ -4,7 +4,7 @@ import asyncio
 from multiprocessing import Queue
 from botCommand import botCommand
 import emoji
-
+import re
 #from discord.ext import commands
 GuildMessageQue:Queue = None
 CMDQue:Queue = None
@@ -51,7 +51,8 @@ async def on_message(message):
         sender = message.author.nick if message.author.nick is not None else message.author.name
         mes:str = message.clean_content
         mes = emoji.demojize(mes)
-        eventNewDiscordMessage(sender, mes.encode("utf-8").decode("utf-8", "strict"))
+        mes = re.sub(r'''[^ 0-9a-zA-Z,.:@$%^&*{}\-_=+[\]\\\n|;<>\/#`~()!?'"]''', '', mes)
+        eventNewDiscordMessage(sender, mes)
     return
 
 def botReply(message:str):
