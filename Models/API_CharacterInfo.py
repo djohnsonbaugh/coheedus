@@ -19,12 +19,16 @@ from unicodedata import decimal
 # TotalTicks_90: 569
 # TotalTicks_Life: 1441
 
+class CharRank(Enum):
+    Main = 'Main'
+    Box = 'Box'
+
 class ApiCharInfo (object):
 
     def __init__(self):
         self.__characterName = ''
         self.__idCharacter = -1
-        self.__characterRank = '' # Main || Box
+        self.__characterRank = CharRank.Main
         self.__currentDKP = 0.0
         return
 
@@ -33,7 +37,7 @@ class ApiCharInfo (object):
     @property
     def IdCharacter(self)->int: return self.__idCharacter
     @property
-    def CharacterRank(self)->str: return self.__characterRank
+    def CharacterRank(self)->CharRank: return self.__characterRank
     @property
     def CurrentDKP(self)->decimal: return self.__currentDKP
 
@@ -42,6 +46,9 @@ class ApiCharInfo (object):
     def from_json(cls, json_str):
         cls.__characterName:str = json_str["CharacterName"]
         cls.__idCharacter:int = json_str["IdCharacter"]
-        cls.__characterRank:str = json_str["CharacterRank"]
+        if(json_str["CharacterRank"] == CharRank.Main):
+            cls.__characterRank:CharRank =  CharRank.Main
+        else:
+            cls.__characterRank:CharRank =  CharRank.Box
         cls.__currentDKP:decimal = json_str["CurrentDKP"]
         return cls
