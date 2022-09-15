@@ -13,8 +13,8 @@ class RaidService (object):
         self.__savepoint: ApiRaid = None
         self.__currentRaid:ApiRaid = None
         self.oDKP : openDKP = oDKP
-        self.alertMessages: str[] = []
-        self.charIdDict :dict = []
+        self.alertMessages: [str] = []
+        self.charIdDict :dict = {}
 
     
     def checkCurrentRaid(self) -> bool:
@@ -62,7 +62,7 @@ class RaidService (object):
         return
 
     
-    def createRaidTick(self, tickDescription, dkpValue, attendees:str[],  pushRaid:bool):
+    def createRaidTick(self, tickDescription, dkpValue, attendees:[str],  pushRaid:bool):
         self.checkCurrentRaid()
         newTick = ApiRaidTick()
         for tick in self.__currentRaid.Ticks:

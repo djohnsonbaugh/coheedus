@@ -8,6 +8,8 @@ bidWithItemPtrn = re.compile("^\s*(bid\s+)?(?P<aucItem>[^\n\r@<>[\]{}$~_]*[a-zA-
 guildMessagePattern = re.compile("\[[\w\d: ]+\]\s(\w+)\stells\sthe\sguild,\s'(.*)'")
 achievementPattern = re.compile("\[[\w\d: ]+\]\s+Your\sguildmate\s+(\w*\s+has\scompleted.*(Alternate\sAdvancement|Reign|Keeper|Hunter|Epic|Level).*achievement\.)")
 botMessagePattern = re.compile("\[[\w\d: ]+\]\s(You\s((tell|say\sto)\s(your\s)?(\w+:)?(party|guild|raid|\d+)|told\s(\w+)),\s'(.*)'|(\w+)\sis\snot\sonline\sat\sthis\stime.)")
+raidRosterChange = re.compile("\[[\w\d: ]+\]\s(\w+)\s(?:were\s|have\s|has\s)?(removed|joined|formed|left)\s(?:from\s)?(?:the\s|a\s)?raid.")
+raidRosterDump = re.compile("\[[\w\d: ]+\]\sOutputfile\sComplete:\s(RaidRoster_\w+-\d+-\d+.txt)")
 
 def isCommand(line:str, cmd: botCommand) -> bool:
     if(commandPattern.match(line)):
@@ -54,3 +56,17 @@ def equalsCommand(cmdpattern:re.Pattern, cmd: botCommand)->bool:
 def eqCommand(cmdpattern, cmd:botCommand) ->bool:
     if(type(cmdpattern) == str): return equalsCommandStr(cmdpattern,cmd)
     return equalsCommand(cmdpattern,cmd)
+
+def isEQRaidRosterChange(line:str, cmd: botCommand)->bool:
+    if(raidRosterChange.match(line)):
+        result = raidRosterChange.search(line)
+        cmd.set(result.group(1).strip(),"log","updateraidroster " + result.group(2).strip())
+        return True
+    return False
+
+def isEQRaidRosterDump(line:str, cmd: botCommand)->bool:
+    if(raidRosterDump.match(line)):
+        result = raidRosterDump.search(line)
+        cmd.set("Everquest","log","readraidrosterdump " + result.group(1).strip())
+        return True
+    return False

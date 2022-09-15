@@ -338,6 +338,20 @@ def exPrintToGuild(cmd: botCommand)->str:
     cmd.Channel = "guild"
     return "<" + cmd.Sender + "> " + cmd.Text
 
+#Log Commands
+def exUpdateRaidRoster(cmd: botCommand):
+    name:str = cmd.Sender if(cmd.Sender.upper() != "YOU") else PlayerName
+    message:str = cmd.Params[1].upper()
+    joining:bool = (message == "JOINED" or message == "FORMED") #LEFT or REMOVED
+    print(name + " joined the raid? -> " + str(joining))
+    return
+
+def exReadRaidRosterDump(cmd: botCommand):
+    filename:str = cmd.Params[1].upper()
+    print(filename + " RAID DUMP!")
+    return
+
+
 cmdRegistration = {
     "Normal" : {
         "ADMIN"                     : exAdmin,
@@ -362,6 +376,10 @@ cmdRegistration = {
     },
     "Discord" : {
         "DEFAULT"                   : exPrintToGuild
+    },
+    "Log" : {
+        "UPDATERAIDROSTER"          : exUpdateRaidRoster,
+        "READRAIDROSTERDUMP"        : exReadRaidRosterDump
     }
 }
 
@@ -383,6 +401,12 @@ def execute(cmd: botCommand):
                 reply(cmd, cmdRegistration["Discord"][command](cmd))
                 return
         reply(cmd, cmdRegistration["Discord"]["DEFAULT"](cmd))
+    elif(cmd.Channel == "log"):
+        for command in cmdRegistration["Log"]:
+            if regexHelper.eqCommand(command, cmd):
+                cmdRegistration["Log"][command](cmd)
+                return
+        return
     else:
         if(cmd.Channel == AucMaster.AdminChannel):
             for command in cmdRegistration["Admin"]:
@@ -396,7 +420,7 @@ def execute(cmd: botCommand):
         reply(cmd, "?")
     return
 
-def runAuctioneer():
+def runBot():
     last:datetime = datetime.now()
     while winOS.isParentAlive():
         if not CommandQue.empty():

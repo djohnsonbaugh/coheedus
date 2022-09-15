@@ -785,9 +785,9 @@
 
 from datetime import datetime
 from typing import List
-import API_RaidPool
-import API_RaidTick
-import API_Item
+from Models.API_RaidPool import ApiRaidPool
+from Models.API_RaidTick import ApiRaidTick
+from Models.API_Item import ApiItem
 
 class ApiRaid (object):
     
@@ -796,11 +796,11 @@ class ApiRaid (object):
     @property
     def IdRaid(self)->int: return self.__idRaid
     @property
-    def Pool(self)->API_RaidPool: return self.__pool
+    def Pool(self)->ApiRaidPool: return self.__pool
     @property
-    def Ticks(self)-> List[API_RaidTick()]: return self.__ticks
+    def Ticks(self)-> List[ApiRaidTick]: return self.__ticks
     @property
-    def Items(self)->List[API_Item()]: return self.__items
+    def Items(self)->List[ApiItem]: return self.__items
     @property
     def Name(self)->str: return self.__name
     @property

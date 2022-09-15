@@ -22,11 +22,11 @@ class openDKP(object):
         self.clientID = conf.get("OPENDKP","clientid","") 
         # self.urls :[str] = []
         self.raidTemplateName = conf.get("OPENDKP","raidtemplate","") 
-        for url in oDKPURL:
-            self.urls.append(conf.get("OPENDKPAPIURLS",url.name,""))
+        #for url in oDKPURL:
+        #    self.urls.append(conf.get("OPENDKPAPIURLS",url.name,""))
         self.session = None
         self.createNewSession()
-        self.loadRaidTemplate2()
+        #self.loadRaidTemplate2()
         return
 
     def createAdjustment4(self):
@@ -103,7 +103,8 @@ class openDKP(object):
         for row in trashjson:
             if(row["CharacterName"] == name):
                 return row["CurrentDKP"]
-        return
+        return 10
+
     def getCharacterInfo(self, name:str) -> ApiCharInfo:
         trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value]).text)["Models"]
         for row in trashjson:

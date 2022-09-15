@@ -66,7 +66,6 @@ async def startDiscordBot():
 async def ProcessGuildMessageQue():
     global GuildMessageQue
     while True:
-        junk = GuildMessageQue.qsize()
         if not GuildMessageQue.empty():
             try:
                 cmd = GuildMessageQue.get_nowait()
