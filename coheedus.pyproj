@@ -66,6 +66,9 @@
     <Compile Include="openDKP.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="raidRoster.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="RaidService.py" />
     <Compile Include="regexHelper.py">
       <SubType>Code</SubType>
