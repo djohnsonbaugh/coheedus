@@ -48,6 +48,10 @@ class eqLog(object):
                 parts = cmd.Text.split(' ')
                 aacmd.set(parts[0],"you","aa " + cmd.Text)
                 self.CMDQue.put(aacmd)
+        elif regexHelper.isEQRaidRosterChange(line, cmd):
+            self.CMDQue.put(cmd)
+        elif regexHelper.isEQRaidRosterDump(line, cmd):
+            self.CMDQue.put(cmd)
 
         #else:
         #    print(line, end='')

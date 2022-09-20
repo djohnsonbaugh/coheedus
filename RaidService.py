@@ -1,8 +1,5 @@
-import json
-from typing import List
 from unicodedata import decimal
-from CharacterService import CharacterService
-from Models.API_CharacterInfo import ApiCharInfo, CharRank
+from Models.API_CharacterInfo import ApiCharInfo
 from Models.API_Item import ApiItem
 from Models.API_RaidTick import ApiRaidTick
 from .openDKP import openDKP
@@ -11,26 +8,21 @@ from .Models.API_Raid import ApiRaid
 
 class RaidService (object):
     """Current Raid Updating Utility"""
-   
-    @property
-    def CharacterService(self)->CharacterService: return self.characterService
-
+    
     def __init__(self, oDKP):
         self.__savepoint: ApiRaid = None
         self.__currentRaid:ApiRaid = None
         self.oDKP : openDKP = oDKP
-        self.__alertMessages: List[str] = List[str]
-        self.charDict :dict[str,ApiCharInfo] = []
-        self.characterService: CharacterService = CharacterService(oDKP=oDKP)
+        self.alertMessages: [str] = []
+        self.charIdDict :dict = {}
 
-    
     
     def checkCurrentRaid(self) -> bool:
         if(self.__currentRaid == None):
             raise Exception("No raid is loaded")
 
 
-    def loadRaidFromSite(self, raidId):
+    def loadRaid(self, raidId):
         """Load raid from DKP Site"""
 
 
@@ -53,7 +45,7 @@ class RaidService (object):
         self.checkCurrentRaid()           
         item = ApiItem()
         item.CharacterName = charName
-        item.IdCharacter = self.characterService.getCharacterId(charName) 
+        item.IdCharacter = self.lookupCharId(charName=charName) #TODO need to lookup character Id
         item.DkpValue = dkpAmt   #DKP Spent
         item.ItemName = itemName
         item.Notes = '' if notes == None else notes # Auction ID?
@@ -97,36 +89,18 @@ class RaidService (object):
         self.__savepoint = self.__currentRaid
         return
 
-    # def lookupCharId(self, charName:str) -> int:
-    #     for key, value in self.charDict.items():
-    #         if(key == charName.upper()):
-    #             return value.IdCharacter
+    def lookupCharId(self, charName:str) -> int:
+        for key, value in self.charIdDict.items():
+            if(key == charName.upper()):
+                return value
 
-    #     charInfo: ApiCharInfo = self.oDKP.getCharacterInfo(name=charName)
+        charInfo: ApiCharInfo = self.oDKP.getCharacterInfo
 
-    #     if(charInfo != None):
-    #         self.charDict.update(charInfo.CharacterName.upper(), charInfo)
-    #     else:
-    #         charInfo: ApiCharInfo = self.oDKP.createCharacter(charName= charName, charRank = CharRank.Main)
-    #         self.AlertMessages.append('New Character automatically added to DKP site: '+ json.dumps(newChar))
-    #         self.charDict.update(charInfo.CharacterName.upper(), charInfo)
-            
-    #     return charInfo.IdCharacter
+        if(charInfo != None):
+            self.charIdDict.update(charInfo.CharacterName, charInfo.IdCharacter)
+            return charInfo.IdCharacter
 
-        
+        return -1
     
-    
-
     def getLastSavePoint(self) -> ApiRaid:
         return self.__savepoint
-
-    def exportRaidToFile(self):
-        #TODO
-        return
-    
-    def loadRaidFromFile(self, filename):
-        #TODO
-        return
-
-    @property
-    def AlertMessages(self)->List[str] : return self.__alertMessages
