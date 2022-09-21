@@ -28,5 +28,14 @@ class appConfig(object):
             self.writeConfig()
         return self.config[section][option]
 
+    def set(self, section: str, option: str, value:str):
+        if not self.config.has_option(section,option):
+            if not self.config.has_section(section):
+                self.config.add_section(section)
+        self.config[section][option] = value
+        self.writeConfig()
+        return
+
+
     def getBool(self, section: str, option: str, default:bool) -> bool:
         return (self.get(section, option, default.__str__()) == 'True')

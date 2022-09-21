@@ -24,7 +24,8 @@ if __name__ == "__main__":
     CommandQue:Queue = Queue()
     EQMessageQue:Queue = Queue()
     EQMessageVerificationQue:Queue = Queue()
-    discordbot.init(conf, CommandQue, GuildMessageQue)
+    LogQue:Queue = Queue()
+    discordbot.init(conf, CommandQue, GuildMessageQue, LogQue)
     print("Loading Config...")
     #eqApp.initConfig(conf)
     print("Config Loaded.")
@@ -34,8 +35,8 @@ if __name__ == "__main__":
 #Processes##############################
 #####################################
 
-def processBot(conf:appConfig, CommandQue: Queue, EQMessageQue:Queue):
-    bot.init(conf, CommandQue, EQMessageQue)
+def processBot(conf:appConfig, CommandQue: Queue, EQMessageQue:Queue, LogQue:Queue):
+    bot.init(conf, CommandQue, EQMessageQue, LogQue)
     bot.runBot()
     return
 
@@ -62,7 +63,7 @@ def main():
 
     if RunBot:
         print("Bot Process Starting...")
-        p = Process(target=processBot,args=(conf,CommandQue, EQMessageQue))
+        p = Process(target=processBot,args=(conf,CommandQue, EQMessageQue, LogQue))
         p.start()
         processes.append(p)
         print("Bot Process Started.")

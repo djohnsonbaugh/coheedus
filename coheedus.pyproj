@@ -54,6 +54,9 @@
     <Compile Include="gsheets.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="logRecord.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Models\API_CharacterInfo.py" />
     <Compile Include="Models\API_Item.py" />
     <Compile Include="Models\API_Raid.py" />
@@ -80,6 +83,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="winOS.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="wishlist.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

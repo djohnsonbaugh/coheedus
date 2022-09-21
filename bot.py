@@ -12,22 +12,29 @@ import time
 import winOS
 import gsheets
 from winOS import winKey
+from logRecord import logRecord,logType
+import json
 oDKP : openDKP = None
 
-DiscordReplyCallBack = None
 CommandQue:Queue =None
 EQMessageQue:Queue=None
+LogQue:Queue=None
 AucMaster:Auctioneer = None
 PlayerName:str = ""
+Wishlists = None
+Config:appConfig = None
 
-def init(config: appConfig, cmdque:Queue, eqmessage:Queue):
-    global oDKP, CommandQue, EQMessageQue, AucMaster, PlayerName
+def init(config: appConfig, cmdque:Queue, eqmessage:Queue, logque:Queue):
+    global oDKP, CommandQue, EQMessageQue, AucMaster, PlayerName, LogQue, Wishlists, Config
+    Config = config
     oDKP = openDKP(config)
     DiscordReplyCallBack = None #discordreply
     CommandQue = cmdque
     EQMessageQue = eqmessage
+    LogQue=logque
     gsheets.init()
-    AucMaster = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3, eqmessage= EQMessageQue)
+    Wishlists = json.loads(config.get("USERS", "wishlists", "{}"))
+    AucMaster = Auctioneer(auctionchan = "rsay",maxactiveauctions = 3, eqmessage= EQMessageQue, logque = LogQue,wishlists = Wishlists)
     PlayerName = config.get("EVERQUEST", "character", "Coheedus")
     return
 
@@ -174,6 +181,24 @@ Usages['status'] = \
 "Not Implemented"
 def exStatus(cmd: botCommand) -> str:
     return Usages['status']
+
+Usages['wish'] = \
+"Usage: !wish #profileID\n"+\
+"Will notify the requester when auctions begin of items on the provided raidloot.com profile wishlist"
+def exWish(cmd: botCommand) -> str:
+    global Config
+    if(cmd.Sender not in Wishlists.keys()):
+        Wishlists[cmd.Sender] = []
+    lists = Wishlists[cmd.Sender]
+    if cmd.ParCount > 0:
+        profile = cmd.Params[1]
+        if AucMaster.AddUpdateWishlist(cmd.Sender, profile):
+            if profile not in lists:
+                lists.append(profile)
+                Config.set("USERS", "wishlists", json.dumps(Wishlists))
+        else:
+            return "Invalid Profile ID: " + profile
+    return "Current Wishlists: " + str(lists)
 
 # ADMIN COMMANDS
 AdminUsages['editAuc'] = \
@@ -363,7 +388,8 @@ cmdRegistration = {
         "ROD"                       : exRod,
         "STATUS"                    : exStatus,
         regexHelper.bidWithIDPtrn   : exBid,
-        regexHelper.bidWithItemPtrn : exBid
+        regexHelper.bidWithItemPtrn : exBid,
+        "WISH"                      : exWish
     },
     "Admin" : {
         regexHelper.aucIdCmdsPtrn   : exEditAuc,       
@@ -386,12 +412,21 @@ cmdRegistration = {
 def reply(cmd: botCommand, message: str):
     if message == "":
         return
+    if(cmd.Channel == AucMaster.AdminChannel):
+        LogQue.put(logRecord(logType.Admin,cmd.Text,cmd.Sender))
+    else:
+        LogQue.put(logRecord(logType.Bid,cmd.Text,cmd.Sender))
+
     messages = message.split("\n")
     for line in messages:   
         if(cmd.Channel == "you"): EQMessageQue.put(("tell " + cmd.Sender, line))
-        elif(cmd.Channel == "discord"): DiscordReplyCallBack(line)
+        #elif(cmd.Channel == "discord"): DiscordReplyCallBack(line)
         else: EQMessageQue.put((cmd.Channel, line))
         #else: eqApp.sendMessage(cmd.Channel, line)
+        if(cmd.Channel == AucMaster.AdminChannel):
+            LogQue.put(logRecord(logType.Admin,line))
+        else:
+            LogQue.put(logRecord(logType.Bid,line))
     return
 
 def execute(cmd: botCommand):

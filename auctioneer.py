@@ -1,30 +1,76 @@
 from auction import Auction
 from bid import Bid
 from multiprocessing import Queue
+from wishlist import wishlist
 #import eqApp
 from datetime import datetime, timedelta
+from logRecord import logRecord,logType
 class Auctioneer(object):
     """description of class"""
 
-    def __init__(self,auctionchan:str, maxactiveauctions:int, eqmessage:Queue):
+    def __init__(self,auctionchan:str, maxactiveauctions:int, eqmessage:Queue, logque:Queue, wishlists):
         self.__aucchan = auctionchan
         self.__adminchan = ""
         self.__maxaucs = maxactiveauctions
         self.__auctions:{int,Auction} = {}
         self.__auccount = 0
         self.__EQMessageQue = eqmessage
-
+        self.__LogQue = logque
+        self.__WishLists:[wishlist] = self.LoadWishlists(wishlists)       
         return
     def SendAuctionMessage(self, message:str):
         self.__EQMessageQue.put((self.__aucchan, message))
+        self.__LogQue.put(logRecord(logType.Auction,message))
         return
     def SendAdminMessage(self, message:str):
         self.__EQMessageQue.put((self.__adminchan, message))
+        self.__LogQue.put(logRecord(logType.Admin,message))
+        return
+    def Notify(self, name:str, message:str):
+        self.__EQMessageQue.put(("tell " + name, message))
+        self.__LogQue.put(logRecord(logType.Bid,"tell " + name + " " + message))
         return
     def NotifyBidder(self, bid:Bid, marginalbid:int):
-        self.__EQMessageQue.put(("tell " + bid.Sender, bid.GetNotificationAndClear(marginalbid)))
+        message:str = bid.GetNotificationAndClear(marginalbid)
+        self.__EQMessageQue.put(("tell " + bid.Sender, message))
+        self.__LogQue.put(logRecord(logType.Bid,"tell " + bid.Sender + " " + message))
+        return
     def NotifyProxyBidder(self, bid:Bid):
-        self.__EQMessageQue.put(("tell " + bid.Bidder, bid.GetProxyNotification()))
+        message:str = bid.GetProxyNotification()
+        self.__EQMessageQue.put(("tell " + bid.Bidder, message))
+        self.__LogQue.put(logRecord(logType.Bid,"tell " + bid.Bidder + " " + message))
+        return
+
+    def LoadWishlists(self, wishlists) -> [wishlist]:
+        wlists:[wishlist] = []
+        for name in wishlists.keys():
+            profiles = wishlists[name]
+            for profile in profiles:
+                wlist:wishlist = wishlist(name, profile)
+                if wlist.Initialize():
+                    wlists.append(wlist)
+        return wlists
+
+    def AddUpdateWishlist(self, name:str, profile:str)->bool:
+        for wlist in self.__WishLists:
+            if(wlist.Owner == name):
+                if(wlist.ID == profile):
+                    return wlist.Initialize()
+        wlist:wishlist = wishlist(name, profile)
+        valid:bool = wlist.Initialize()
+        if valid:
+            self.__WishLists.append(wlist)
+        
+        return valid
+
+    def CheckWishlists(self, auc:Auction):
+        print("checking for:" + auc.ItemName)
+        for wlist in self.__WishLists:
+            print("checking wlist" + wlist.Owner + " who wants " + str(wlist.Items))
+            if wlist.Wants(auc.ItemName):
+                print("he wants it! try to tell")
+                self.Notify(wlist.Owner, "WISHLIST: " + wlist.Character + " wants [Auc:" + str(auc.ID) + "] " +  auc.ItemName)
+        return
 
     @property
     def IDAll(self)->int: return -300
@@ -69,6 +115,7 @@ class Auctioneer(object):
                 #ADD NEW AUCTION
                 id = self.__GetNextAucID()
                 self.__auctions[id] = Auction(id,item,itemcount,minutes,autostart,autoaward)
+                self.CheckWishlists(self.__auctions[id])
                 if(len(items) == 1):
                     return "Created Auction->" + self.__auctions[id].ToStr
                 if(updatedbids != ""): updatedbids += ","
