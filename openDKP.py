@@ -99,7 +99,7 @@ class openDKP(object):
 
 
     def getDKP(self, name:str):
-        trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value]).text)["Models"]
+        trashjson = json.loads(self.session.get('https://7gnjtigho4.execute-api.us-east-2.amazonaws.com/beta/dkp').text)["Models"]
         for row in trashjson:
             if(row["CharacterName"] == name):
                 return row["CurrentDKP"]
