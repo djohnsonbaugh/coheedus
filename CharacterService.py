@@ -3,32 +3,37 @@ from typing import List
 from unicodedata import name
 
 from Models.API_CharacterInfo import ApiCharInfo, CharClass, CharRank, Gender
-from .openDKP import openDKP
+from appConfig import appConfig
+from openDKP import openDKP
 
 class CharacterService (object):
     """Character Management Utility and cache"""
 
-    def __init__(self, oDKP):
+    def __init__(self):
+        conf: appConfig = appConfig()
         self.__alertMessages: List[str] = List[str]
-        self.oDKP : openDKP = oDKP
-        self.__charDict :dict[str,ApiCharInfo] = []
+        self.oDKP : openDKP = openDKP(conf)
+        self.__charDict :dict[str,ApiCharInfo] = dict()
         self.reload()
         
 
     def reload(self):
         self.__charDict.clear()
         for result in self.oDKP.getCharacters():
-            self.__charDict.update(result.CharacterName, result)
+            self.__charDict[result.CharacterName] =  result
         return
 
-    def getDKP(self, name) -> int:
+    def isMain(self, charName:str) -> bool:
+        return self.__charDict[charName].CharacterRank == CharRank.Main
+
+    def getDKP(self, name:str) -> int:
         return self.__charDict[name].CurrentDKP
     
-    def getCharacterId(self, name) -> int:
+    def getCharacterId(self, name:str) -> int:
         return self.__charDict[name].IdCharacter
         
     def updateCharacter(self, name:str, updateArgs:dict):
-        charInfo = self.__charDict[name]
+        charInfo:ApiCharInfo = self.__charDict[name]
         for key, value in updateArgs:
             charInfo[key] = value
 
@@ -37,15 +42,15 @@ class CharacterService (object):
         return
 
     def createCharacter(self, charName:str, strRank:str, strClass:str):
-        charClass = CharClass[strClass.capitalize()]
+        charClass = CharClass[strClass]
         if(charClass == None):
             charClass = CharClass.Berserker
 
-        charRank = CharRank[strClass.capitalize()]
+        charRank = CharRank[strRank]
         if(charRank == None):
             charRank = CharRank.Main
 
-        charInfo = self.oDKP.createCharacter(charName=charName, rank=charRank, charClass=charClass)
+        charInfo: ApiCharInfo = self.oDKP.createCharacter(charName=charName, rank=charRank, charClass=charClass)
         self.__charDict.update(charInfo.CharacterName, charInfo)
         return
 

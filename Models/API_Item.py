@@ -1,3 +1,4 @@
+import json
 from unicodedata import decimal
 
 
@@ -40,4 +41,16 @@ class ApiItem (object):
     def Notes(self)-> str: return self.__notes
 
     
-
+    
+    def from_json(self, json_str):
+        self.__characterName = json_str["CharacterName"]
+        self.__idCharacter = json_str["IdCharacter"]
+        self.__itemName = json_str["ItemName"]
+        self.__itemId = json_str["ItemID"]
+        self.__gameItemId = json_str["GameItemId"]
+        self.__dkpValue = json_str["DkpValue"]
+        self.__notes = json_str["Notes"]
+        return self
+    
+    def toJson(self) -> str:
+        return json.dumps(self)

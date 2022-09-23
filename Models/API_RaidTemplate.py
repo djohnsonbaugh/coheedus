@@ -138,10 +138,10 @@ class ApiRaidTemplate(object):
     @property
     def Ticks(self)->List[ApiRaidTick]: return self.__ticks
     
-    @classmethod
-    def from_json(cls, json_str):
-        cls.__name:str = json["Name"]
-        cls.__ticks = []
+   
+    def from_json(self, json_str):
+        self.__name:str = json["Name"]
+        self.__ticks = []
         for row in json["Ticks"]:
-            cls.__ticks.append(ApiRaidTick.from_json(row))
-        return cls
+            self.__ticks.append(ApiRaidTick().from_json(row))
+        return self

@@ -32,7 +32,10 @@ from unicodedata import decimal
 #       },
 
 class ApiRaidTick (object): 
-    def __init__(self, description, value, raidId, tickId, attendees):
+    def __init__(self):
+        return
+
+    def populate(self,  description, value, raidId, tickId, attendees):
         self.__description:str = description
         self.__value:decimal = value
         self.__raidId:int = raidId
@@ -51,11 +54,13 @@ class ApiRaidTick (object):
     @property
     def Attendees(self)->List[str]: return self.__attendees
     
-    @classmethod
-    def from_json(cls, json_str):
-        cls.__description:str = json_str["Description"]
-        cls.__value:decimal = json_str["Value"]
-        cls.__raidId:int = json_str["RaidId"]
-        cls.__tickId:int = json_str["TickId"]
-        cls.__attendees:List[str] = json_str["Attendees"]
-        return cls
+    def from_json(self, json_str):
+        self.__description:str = json_str["Description"]
+        self.__value:decimal = json_str["Value"]
+        self.__raidId:int = json_str["RaidId"]
+        self.__tickId:int = json_str["TickId"]
+        self.__attendees:List[str] = json_str["Attendees"]
+        return self
+    
+    def toJson(self) -> str:
+        return json.dumps(self)

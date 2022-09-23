@@ -1,6 +1,7 @@
+from typing import List
 from urllib import response
 import requests, json
-from Models.API_CharacterInfo import ApiCharInfo
+from Models.API_CharacterInfo import ApiCharInfo, CharClass, CharRank
 from Models.API_Raid import ApiRaid
 from Models.API_RaidTemplate import ApiRaidTemplate
 from appConfig import appConfig
@@ -29,7 +30,7 @@ class openDKP(object):
         #self.loadRaidTemplate2()
         return
 
-    def createAdjustment4(self):
+    def createAdjustment(self):
         method = 'PUT'
         url = 'https://5koqnuxrt7.execute-api.us-east-2.amazonaws.com/beta/adjustments'
         host = "5koqnuxrt7.execute-api.us-east-2.amazonaws.com"
@@ -62,12 +63,6 @@ class openDKP(object):
         security_token = response2["Credentials"]["SessionToken"]
         realsecretkey = response2["Credentials"]["SecretKey"]
         
-    
-# Auth value from webpage: 
-# AWS4-HMAC-SHA256 
-# Credential=ASIA2MPTS7L2WQI6GQCH/20220807/us-east-2/execute-api/aws4_request, 
-# SignedHeaders=clientid;cognitoinfo;content-type;host;x-amz-date;x-amz-security-token, 
-# Signature=3baeb16e933dd980dc19e1ee0e6c0252347a8dcc034cfa7de7abbc9462929279
         signedHeadersDic = {"clientid": self.clientID, "cognitoinfo" : id_token, "content-type": contentType,"host": host, "x-amz-date":datestr, "x-amz-security-token":security_token}
         self.session.headers.update({"accept": "application/json, text/plain, */*"})
         self.session.headers.update({"content-type": contentType})
@@ -76,18 +71,8 @@ class openDKP(object):
         self.session.headers.update({"x-amz-security-token" : security_token})
         self.session.headers.update({"clientid" : self.clientID})
         self.session.headers.update({"content-length" : payload.__len__().__str__()})
-
-
-        # req = requests.Request(method=method, url=url, json=payload, headers=self.session.headers)
-        # reqBody = json.dumps(req.json)
-        # if not isinstance(reqBody, bytes):
-        #         reqBody = reqBody.encode("utf-8")
-        # self.session.headers.update({"authorization": getAuthValue(method, conPath, conQuery, accesskey_id, signedHeadersDic, payload)})
         self.session.headers.update({"authorization": getAuthValue(method=method, canUri=conPath,canQueryString=conQuery,secretKey=realsecretkey, accessKey=accesskey_id, signedHeaders=signedHeadersDic, payload=payload)})
-        # self.session.headers.update({"authorization": getAuthValue(method, conPath, conQuery, accesskey_id, signedHeadersDic, reqBody)})
-        # req.headers = self.session.headers
-        # prepReq = req.prepare()
-        # response = self.session.send(prepReq)
+        
         response =  self.session.request(method=method, url=url, data=payload)
         print(response.text)
         return
@@ -97,6 +82,71 @@ class openDKP(object):
         self.session.headers.update({"clientid":self.clientID})
         return
 
+    def loadRaidById(self, raidId:int) -> ApiRaid:
+        url = 'https://orgl2496uk.execute-api.us-east-2.amazonaws.com/beta/raids/' + raidId.__str__()
+        #FIXME See if additional query parameters can be added to automatically filter results
+
+        raidResp = self.session.get(url)
+        
+        if raidResp.status_code == 200 and raidResp.text != '':
+                return ApiRaid().from_json(json.loads(raidResp.text))
+        return None
+    
+    def getCharacters(self) -> List[ApiCharInfo]:
+        url = 'https://7gnjtigho4.execute-api.us-east-2.amazonaws.com/beta/dkp'
+
+        charResp = json.loads(self.session.get(url).text)["Models"]
+        results:List[ApiCharInfo] = []
+        
+        for char in charResp:           
+            results.append(ApiCharInfo().from_json(char))
+        return results
+
+    def pushRaid(self, raid:ApiRaid)-> ApiRaid:
+        method = 'PUT'
+        url = 'https://orgl2496uk.execute-api.us-east-2.amazonaws.com/beta/raids'
+        host = "orgl2496uk.execute-api.us-east-2.amazonaws.com"
+        conPath = '/beta/raids'
+        conQuery = ''
+        contentType = "application/json; charset=UTF-8"
+        payload = raid.toJson()
+
+        curdate = datetime.utcnow()
+        datestr = curdate.strftime('%Y%m%dT%H%M%SZ')
+        clientidp =  boto3.client('cognito-idp',region_name="us-east-2")
+        aws = AWSSRP(username=self.dkpUser, password=self.dkpUserKey, pool_id='us-east-2_e8c5EPfnE',
+        client_id='2sq61k8dj39e309tnh5tm70dd4', client=clientidp)
+        tokens = aws.authenticate_user()
+        id_token = tokens['AuthenticationResult']['IdToken']       
+        clientiden = boto3.client('cognito-identity',region_name="us-east-2")
+        #no account id
+        response1 = clientiden.get_id(
+            AccountId='714012293877', 
+            IdentityPoolId='us-east-2:13ff4266-95dc-4a84-be2a-7b2ba75c1b83',
+            Logins={'cognito-idp.us-east-2.amazonaws.com/us-east-2_e8c5EPfnE': id_token}
+        ) 
+        identity_id = response1["IdentityId"]
+        response2 = clientiden.get_credentials_for_identity(
+            IdentityId = identity_id,
+            Logins={'cognito-idp.us-east-2.amazonaws.com/us-east-2_e8c5EPfnE': id_token}
+        )
+        accesskey_id = response2["Credentials"]["AccessKeyId"]
+        security_token = response2["Credentials"]["SessionToken"]
+        realsecretkey = response2["Credentials"]["SecretKey"]
+       
+        signedHeadersDic = {"clientid": self.clientID, "cognitoinfo" : id_token, "content-type": contentType,"host": host, "x-amz-date":datestr, "x-amz-security-token":security_token}
+        self.session.headers.update({"accept": "application/json, text/plain, */*"})
+        self.session.headers.update({"content-type": contentType})
+        self.session.headers.update({"cognitoinfo" : id_token})
+        self.session.headers.update({"x-amz-date" : datestr})
+        self.session.headers.update({"x-amz-security-token" : security_token})
+        self.session.headers.update({"clientid" : self.clientID})
+        self.session.headers.update({"content-length" : payload.__len__().__str__()})
+        self.session.headers.update({"authorization": getAuthValue(method=method, canUri=conPath,canQueryString=conQuery,secretKey=realsecretkey, accessKey=accesskey_id, signedHeaders=signedHeadersDic, payload=payload)})
+        #TODO Test this
+        response =  self.session.request(method=method, url=url, json=json.load(raid))
+        print(response.text)
+        return ApiRaid().from_json(json.load(response.text))
 
     def getDKP(self, name:str):
         trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value]).text)["Models"]
@@ -109,7 +159,7 @@ class openDKP(object):
         trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value]).text)["Models"]
         for row in trashjson:
             if(row["CharacterName"] == name):
-                return ApiCharInfo.from_json(row)
+                return ApiCharInfo().from_json(row)
         return
 
     def loadRaidTemplate(self):
@@ -123,8 +173,15 @@ class openDKP(object):
                 return row
         return
 
+    def createCharacter(self, charName:str, rank:CharRank, charClass:CharClass) -> ApiCharInfo:
+        #TODO 
+        return 
 
-    def loadRaidTemplate2(self) -> ApiRaidTemplate:
+    def updateCharacter(charInfo: ApiCharInfo) -> ApiCharInfo:
+        #TODO
+        return
+
+    def loadDefaultRaidTemplate(self) -> ApiRaidTemplate:
         url = "https://4jmtrkwc86.execute-api.us-east-2.amazonaws.com/beta/admin/settings/raid_templates"
 
         responseString = json.loads(self.session.get(url).text)["SettingValue"]
@@ -132,12 +189,8 @@ class openDKP(object):
         jsonTemplates = json.loads(responseString)["Templates"]
         for row in jsonTemplates:
             if(row["Name"] == self.raidTemplateName):
-                template = ApiRaidTemplate.from_json(row)
+                template = ApiRaidTemplate().from_json(row)
                 return template
-        return
-
-    def pushRaid(raid:ApiRaid):
-
         return
 
 

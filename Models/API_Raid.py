@@ -784,6 +784,7 @@
 # }
 
 from datetime import datetime
+import json
 from typing import List
 from Models.API_RaidPool import ApiRaidPool
 from Models.API_RaidTick import ApiRaidTick
@@ -791,8 +792,13 @@ from Models.API_Item import ApiItem
 
 class ApiRaid (object):
     
+    def __init__(self):
+        self.__timestamp = datetime.utcnow()
+        return
     
     #PROPERTIES
+    @property
+    def Attendance(self) -> int: return self.__attendance
     @property
     def IdRaid(self)->int: return self.__idRaid
     @property
@@ -807,3 +813,35 @@ class ApiRaid (object):
     def UpdatedBy(self)->str: return self.__updatedBy
     @property
     def UpdatedTime(self)->datetime: return self.__updatedTime
+    @property
+    def Pool(self)->ApiRaidPool: return self.__pool
+    @property
+    def Ticks(self)-> List[ApiRaidTick]: return self.__ticks
+    @property
+    def Timestamp(self)->str: return self.__timestamp
+
+    
+    def from_json(self, json_str):
+        self.__idRaid:str = json_str["IdRaid"]
+        self.__name = json_str["Name"]
+        self.__pool = ApiRaidPool().from_json(json_str["Pool"])
+        
+        ticks:List[ApiRaidTick] = []
+        for row in json_str["Ticks"]:
+            ticks.append(ApiRaidTick().from_json(row))
+        self.__ticks = ticks
+        
+        
+        items: List[ApiItem] = []
+        for row in json_str["Items"]:
+            items.append(ApiItem().from_json(row))
+        self.__items = items
+
+        self.__updatedBy = json_str["UpdatedBy"]
+        self.__updatedTime = json_str["UpdatedTimestamp"]
+        self.__timestamp = json_str["Timestamp"]
+        self.__attendance = json_str["Attendance"]
+        return self
+        
+    def toJson(self) -> str:
+        return json.dumps(self)

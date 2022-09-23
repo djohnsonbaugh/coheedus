@@ -1,3 +1,4 @@
+from enum import Enum
 from unicodedata import decimal
 
 # AttendedTicks_30: 130
@@ -22,6 +23,29 @@ from unicodedata import decimal
 class CharRank(Enum):
     Main = 'Main'
     Box = 'Box'
+    Visitor = 'Visitor'
+
+class Gender(Enum):
+    Male = 'Male'
+    Female = 'Female'
+
+class CharClass(Enum):
+    Bard = 'Bard'
+    Beastlord = 'Beastlord'
+    Berserker = 'Berserker'
+    Cleric = 'Cleric'
+    Druid = 'Druid'
+    Enchanter = 'Enchanter'
+    Magician = 'Magician'
+    Monk = 'Monk'
+    Necromancer = 'Necromancer'
+    Paladin = 'Paladin'
+    Ranger = 'Ranger'
+    Rogue = 'Rogue'
+    ShadowKnight = 'Shadow Knight'
+    Shaman = 'Shaman'
+    Warrior = 'Warrior'
+    Wizard = 'Wizard'
 
 class ApiCharInfo (object):
 
@@ -42,13 +66,13 @@ class ApiCharInfo (object):
     def CurrentDKP(self)->decimal: return self.__currentDKP
 
 
-    @classmethod
-    def from_json(cls, json_str):
-        cls.__characterName:str = json_str["CharacterName"]
-        cls.__idCharacter:int = json_str["IdCharacter"]
+    
+    def from_json(self, json_str):
+        self.__characterName:str = json_str["CharacterName"]
+        self.__idCharacter:int = json_str["IdCharacter"]
         if(json_str["CharacterRank"] == CharRank.Main):
-            cls.__characterRank:CharRank =  CharRank.Main
+            self.__characterRank:CharRank =  CharRank.Main
         else:
-            cls.__characterRank:CharRank =  CharRank.Box
-        cls.__currentDKP:decimal = json_str["CurrentDKP"]
-        return cls
+            self.__characterRank:CharRank =  CharRank.Box
+        self.__currentDKP:decimal = json_str["CurrentDKP"]
+        return self
