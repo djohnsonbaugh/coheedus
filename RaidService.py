@@ -17,7 +17,10 @@ class RaidService (object):
     
     
     def AlertMessages(self)->List[str] : return self.alertMessages
-   
+    
+    @property
+    def CharService(self) -> CharacterService: return self.charService
+
     def __init__(self):
         conf: appConfig = appConfig()
         self.__savepoint: ApiRaid = None
@@ -87,7 +90,6 @@ class RaidService (object):
 
         if(pushRaid == None or pushRaid):
             self.pushRaid()
-
         return
 
     
@@ -119,6 +121,7 @@ class RaidService (object):
         self.checkCurrentRaid()
         self.oDKP.pushRaid(self.__currentRaid)
         self.__savepoint = self.__currentRaid
+        self.charService.reload()
         return
     
     def getLastSavePoint(self) -> ApiRaid:

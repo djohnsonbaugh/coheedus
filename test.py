@@ -11,7 +11,7 @@ async def test():
     global oDKP
     #oDKP = bot.oDKP
     raidService: RaidService = RaidService()
-    charService: CharacterService = CharacterService()
+    #charService: CharacterService = CharacterService()
 
     #TEST Single Calls HERE
     #######################
@@ -22,7 +22,7 @@ async def test():
     raidId :int = raidService.loadRaid(33006767)
     print("Loading old raid. Returned: "+  str(raidId) )
 
-    print("Bigrax DKP is " + str(charService.getDKP("Bigrax")) )
+    print("Bigrax DKP is " + str(raidService.CharService.getDKP("Bigrax")) )
 
     print("test would have run..")
 
