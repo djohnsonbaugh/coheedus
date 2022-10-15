@@ -785,63 +785,81 @@
 
 from datetime import datetime
 import json
+from textwrap import indent
 from typing import List
+
+import jsonpickle
 from Models.API_RaidPool import ApiRaidPool
 from Models.API_RaidTick import ApiRaidTick
 from Models.API_Item import ApiItem
 
+# class RaidEncoder(json.JSONEncoder):
+#         def default(self, o):
+#             return o.__dict__
 class ApiRaid (object):
     
     def __init__(self):
-        self.__timestamp = datetime.utcnow()
+        self.Timestamp = datetime.utcnow()
         return
     
     #PROPERTIES
-    @property
-    def Attendance(self) -> int: return self.__attendance
-    @property
-    def IdRaid(self)->int: return self.__idRaid
-    @property
-    def Pool(self)->ApiRaidPool: return self.__pool
-    @property
-    def Ticks(self)-> List[ApiRaidTick]: return self.__ticks
-    @property
-    def Items(self)->List[ApiItem]: return self.__items
-    @property
-    def Name(self)->str: return self.__name
-    @property
-    def UpdatedBy(self)->str: return self.__updatedBy
-    @property
-    def UpdatedTime(self)->datetime: return self.__updatedTime
-    @property
-    def Pool(self)->ApiRaidPool: return self.__pool
-    @property
-    def Ticks(self)-> List[ApiRaidTick]: return self.__ticks
-    @property
-    def Timestamp(self)->str: return self.__timestamp
+    # @property
+    # def Attendance(self) -> int: return self.Attendance
+    # @property
+    # def IdRaid(self)->int: return self.IdRaid
+    # @property
+    # def Pool(self)->ApiRaidPool: return self.Pool
+    # @property
+    # def Ticks(self)-> List[ApiRaidTick]: return self.Ticks
+    # @property
+    # def Items(self)->List[ApiItem]: return self.Items
+    # @property
+    # def Name(self)->str: return self.Name
+    # @property
+    # def UpdatedBy(self)->str: return self.UpdatedBy
+    # @property
+    # def UpdatedTime(self)->datetime: return self.UpdatedTimestamp
+    # @property
+    # def Pool(self)->ApiRaidPool: return self.Pool
+    # @property
+    # def Ticks(self)-> List[ApiRaidTick]: return self.Ticks
+    # @property
+    # def Timestamp(self)->str: return self.Timestamp
 
     
     def from_json(self, json_str):
-        self.__idRaid:str = json_str["IdRaid"]
-        self.__name = json_str["Name"]
-        self.__pool = ApiRaidPool().from_json(json_str["Pool"])
+        self.IdRaid:str = json_str["IdRaid"]
+        self.Name = json_str["Name"]
+        self.Pool = ApiRaidPool().from_json(json_str["Pool"])
         
         ticks:List[ApiRaidTick] = []
         for row in json_str["Ticks"]:
             ticks.append(ApiRaidTick().from_json(row))
-        self.__ticks = ticks
+        self.Ticks = ticks
         
         
         items: List[ApiItem] = []
         for row in json_str["Items"]:
             items.append(ApiItem().from_json(row))
-        self.__items = items
+        self.Items = items
 
-        self.__updatedBy = json_str["UpdatedBy"]
-        self.__updatedTime = json_str["UpdatedTimestamp"]
-        self.__timestamp = json_str["Timestamp"]
-        self.__attendance = json_str["Attendance"]
+        self.UpdatedBy = json_str["UpdatedBy"]
+        self.UpdatedTimestamp = json_str["UpdatedTimestamp"]
+        self.Timestamp = json_str["Timestamp"]
+        self.Attendance = json_str["Attendance"]
         return self
         
     def toJson(self) -> str:
-        return json.dumps(self)
+        s = json.dumps(self, default=lambda o: o.__dict__).replace("_ApiRaidTick", '').replace('_ApiRaid', '').replace('_ApiItem', '')
+    #    print(s)
+        return s
+    
+    # This formats the JSON in a way that is easier to read for testing purposes.
+    # Can not sent this to the dkp site
+    def toJsonFormattedString(self) ->str:
+        # encJSON = jsonpickle.encode(self, unpicklable=False)
+        s = json.dumps(self, indent=2, default=lambda o: o.__dict__).replace("_ApiRaidTick", '').replace('_ApiRaid', '').replace('_ApiItem', '')
+        print(s)
+        return s
+    
+    

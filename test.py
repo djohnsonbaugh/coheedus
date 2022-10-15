@@ -24,6 +24,11 @@ async def test():
 
     print("Bigrax DKP is " + str(raidService.CharService.getDKP("Bigrax")) )
 
+    print('adding Item to loaded raid...')
+    raidService.addItem('Bigrax', 12.0, 'Thunderclap', 'testing', True)
+    print('Item added to raid...')
+    print("Bigrax DKP is " + str(raidService.CharService.getDKP("Bigrax")) )
+
     print("test would have run..")
 
     while True:

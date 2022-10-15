@@ -130,18 +130,18 @@ from Models.API_RaidTick import ApiRaidTick
 class ApiRaidTemplate(object):
 
     def __init__(self, name):
-        self.__name:str = name
-        self.__ticks = []
+        self.Name:str = name
+        self.Ticks = []
 
-    @property
-    def Name(self)->str: return self.__name
-    @property
-    def Ticks(self)->List[ApiRaidTick]: return self.__ticks
+    # @property
+    # def Name(self)->str: return self.Name
+    # @property
+    # def Ticks(self)->List[ApiRaidTick]: return self.Ticks
     
    
     def from_json(self, json_str):
-        self.__name:str = json["Name"]
-        self.__ticks = []
-        for row in json["Ticks"]:
-            self.__ticks.append(ApiRaidTick().from_json(row))
+        self.Name:str = json_str["Name"]
+        self.Ticks = []
+        for row in json_str["Ticks"]:
+            self.Ticks.append(ApiRaidTick().from_json(row))
         return self

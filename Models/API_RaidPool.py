@@ -9,27 +9,28 @@ import json
 class ApiRaidPool(object):
 
     def __init__(self):
-        self.__name = "PoP"
-        self.__description = "Planes of Power"
-        self.__idPool = 6
+        self.Name = "PoP"
+        self.Description = "Planes of Power"
+        self.IdPool = 6
         return
     
     #PROPERTIES
-    @property
-    def Name(self)->int: return self.__name
-    @property
-    def Description(self)->str: return self.__description
-    @property
-    def IdPool(self)->int: return self.__idPool
+    # @property
+    # def Name(self)->int: return self.Name
+    # @property
+    # def Description(self)->str: return self.Description
+    # @property
+    # def IdPool(self)->int: return self.IdPool
 
 
     def from_json(self, json_str):
-        self.__name:str = json_str["Name"]
-        self.__description:str = json_str["Description"]
-        self.__idPool:int = json_str["IdPool"]
+        self.Name:str = json_str["Name"]
+        self.Description:str = json_str["Description"]
+        self.IdPool:int = json_str["IdPool"]
         return self
         
-    def toJson(self) -> str:
-        # return '{"Name":"' + self.__name + '","Description:"'+self.__description +"',IdPool:" + self.__idPool+"}"
-        return json.dumps(self)
+    # def toJson(self) -> str:
+    #     #FIXME
+    #     # return '{"Name":"' + self.Name + '","Description:"'+self.Description +"',IdPool:" + self.IdPool+"}"
+    #     return json.dumps(self)
         

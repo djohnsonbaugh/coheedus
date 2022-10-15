@@ -1,4 +1,5 @@
 from enum import Enum
+import json
 from unicodedata import decimal
 
 # AttendedTicks_30: 130
@@ -50,29 +51,35 @@ class CharClass(Enum):
 class ApiCharInfo (object):
 
     def __init__(self):
-        self.__characterName = ''
-        self.__idCharacter = -1
-        self.__characterRank = CharRank.Main
-        self.__currentDKP = 0.0
+        self.CharacterName = ''
+        self.IdCharacter = -1
+        self.CharacterRank = CharRank.Main
+        self.CurrentDKP = 0.0
         return
 
-    @property
-    def CharacterName(self)->str: return self.__characterName
-    @property
-    def IdCharacter(self)->int: return self.__idCharacter
-    @property
-    def CharacterRank(self)->CharRank: return self.__characterRank
-    @property
-    def CurrentDKP(self)->decimal: return self.__currentDKP
+    # @property
+    # def CharacterName(self)->str: return self.__characterName
+    # @property
+    # def IdCharacter(self)->int: return self.__idCharacter
+    # @property
+    # def CharacterRank(self)->CharRank: return self.__characterRank
+    # @property
+    # def CurrentDKP(self)->decimal: return self.__currentDKP
 
 
     
     def from_json(self, json_str):
-        self.__characterName:str = json_str["CharacterName"]
-        self.__idCharacter:int = json_str["IdCharacter"]
+        self.CharacterName:str = json_str["CharacterName"]
+        self.IdCharacter:int = json_str["IdCharacter"]
         if(json_str["CharacterRank"] == CharRank.Main):
-            self.__characterRank:CharRank =  CharRank.Main
+            self.CharacterRank:CharRank =  CharRank.Main
         else:
-            self.__characterRank:CharRank =  CharRank.Box
-        self.__currentDKP:decimal = json_str["CurrentDKP"]
+            self.CharacterRank:CharRank =  CharRank.Box
+        self.CurrentDKP:decimal = json_str["CurrentDKP"]
         return self
+    
+    #FIXME Need to test this yet
+    def toJson(self)->str:
+        s = json.dumps(self, default=lambda o: o.__dict__).replace("_ApiRaidTick", '').replace('_ApiRaid', '').replace('_ApiItem', '')
+    #    print(s)
+        return s

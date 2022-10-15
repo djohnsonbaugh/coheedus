@@ -26,6 +26,8 @@ class openDKP(object):
         #for url in oDKPURL:
         #    self.urls.append(conf.get("OPENDKPAPIURLS",url.name,""))
         self.session = None
+        self.dkpUser =  conf.get("OPENDKP", "dkpuser", '')
+        self.dkpUserKey =  conf.get("OPENDKP", "dkpuserkey", '')
         self.createNewSession()
         #self.loadRaidTemplate2()
         return
@@ -73,7 +75,7 @@ class openDKP(object):
         self.session.headers.update({"content-length" : payload.__len__().__str__()})
         self.session.headers.update({"authorization": getAuthValue(method=method, canUri=conPath,canQueryString=conQuery,secretKey=realsecretkey, accessKey=accesskey_id, signedHeaders=signedHeadersDic, payload=payload)})
         
-        response =  self.session.request(method=method, url=url, data=payload)
+        response =  self.session.request(method=method, url=url, data=payload, timeout=20)
         print(response.text)
         return
 
@@ -86,7 +88,7 @@ class openDKP(object):
         url = 'https://orgl2496uk.execute-api.us-east-2.amazonaws.com/beta/raids/' + raidId.__str__()
         #FIXME See if additional query parameters can be added to automatically filter results
 
-        raidResp = self.session.get(url)
+        raidResp = self.session.get(url, timeout=10)
         
         if raidResp.status_code == 200 and raidResp.text != '':
                 return ApiRaid().from_json(json.loads(raidResp.text))
@@ -95,14 +97,14 @@ class openDKP(object):
     def getCharacters(self) -> List[ApiCharInfo]:
         url = 'https://7gnjtigho4.execute-api.us-east-2.amazonaws.com/beta/dkp'
 
-        charResp = json.loads(self.session.get(url).text)["Models"]
+        charResp = json.loads(self.session.get(url, timeout=15).text)["Models"]
         results:List[ApiCharInfo] = []
         
         for char in charResp:           
             results.append(ApiCharInfo().from_json(char))
         return results
-
-    def pushRaid(self, raid:ApiRaid)-> ApiRaid:
+    
+    def createRaid(self, raid:ApiRaid)-> ApiRaid:
         method = 'PUT'
         url = 'https://orgl2496uk.execute-api.us-east-2.amazonaws.com/beta/raids'
         host = "orgl2496uk.execute-api.us-east-2.amazonaws.com"
@@ -144,19 +146,69 @@ class openDKP(object):
         self.session.headers.update({"content-length" : payload.__len__().__str__()})
         self.session.headers.update({"authorization": getAuthValue(method=method, canUri=conPath,canQueryString=conQuery,secretKey=realsecretkey, accessKey=accesskey_id, signedHeaders=signedHeadersDic, payload=payload)})
         #TODO Test this
-        response =  self.session.request(method=method, url=url, json=json.load(raid))
+        response =  self.session.request(method=method, url=url, data=raid.toJson(), timeout=15)
         print(response.text)
-        return ApiRaid().from_json(json.load(response.text))
+        return ApiRaid().from_json(json.loads(response.text))
+
+    def pushRaid(self, raid:ApiRaid)-> ApiRaid:
+        method = 'POST'
+        url = 'https://orgl2496uk.execute-api.us-east-2.amazonaws.com/beta/raids'
+        host = "orgl2496uk.execute-api.us-east-2.amazonaws.com"
+        conPath = '/beta/raids'
+        conQuery = ''
+        contentType = "application/json; charset=UTF-8"
+        payload = raid.toJson()
+
+        curdate = datetime.utcnow()
+        datestr = curdate.strftime('%Y%m%dT%H%M%SZ')
+        clientidp =  boto3.client('cognito-idp',region_name="us-east-2")
+        aws = AWSSRP(username=self.dkpUser, password=self.dkpUserKey, pool_id='us-east-2_e8c5EPfnE',
+        client_id='2sq61k8dj39e309tnh5tm70dd4', client=clientidp)
+        tokens = aws.authenticate_user()
+        id_token = tokens['AuthenticationResult']['IdToken']       
+        clientiden = boto3.client('cognito-identity',region_name="us-east-2")
+        #no account id
+        response1 = clientiden.get_id(
+            AccountId='714012293877', 
+            IdentityPoolId='us-east-2:13ff4266-95dc-4a84-be2a-7b2ba75c1b83',
+            Logins={'cognito-idp.us-east-2.amazonaws.com/us-east-2_e8c5EPfnE': id_token}
+        ) 
+        identity_id = response1["IdentityId"]
+        response2 = clientiden.get_credentials_for_identity(
+            IdentityId = identity_id,
+            Logins={'cognito-idp.us-east-2.amazonaws.com/us-east-2_e8c5EPfnE': id_token}
+        )
+        accesskey_id = response2["Credentials"]["AccessKeyId"]
+        security_token = response2["Credentials"]["SessionToken"]
+        realsecretkey = response2["Credentials"]["SecretKey"]
+       
+        signedHeadersDic = {"clientid": self.clientID, "cognitoinfo" : id_token, "content-type": contentType,"host": host, "x-amz-date":datestr, "x-amz-security-token":security_token}
+        self.session.headers.update({"accept": "application/json, text/plain, */*"})
+        self.session.headers.update({"content-type": contentType})
+        self.session.headers.update({"cognitoinfo" : id_token})
+        self.session.headers.update({"x-amz-date" : datestr})
+        self.session.headers.update({"x-amz-security-token" : security_token})
+        self.session.headers.update({"clientid" : self.clientID})
+        self.session.headers.update({"content-length" : payload.__len__().__str__()})
+        self.session.headers.update({"authorization": getAuthValue(method=method, canUri=conPath,canQueryString=conQuery,secretKey=realsecretkey, accessKey=accesskey_id, signedHeaders=signedHeadersDic, payload=payload)})
+        #TODO Test this... This don't Work. Site returns error code
+        #FIXME 
+        response =  self.session.request(method=method, url=url, json=json.loads(raid.toJson()), timeout=15)
+        print(response.text)
+        return ApiRaid().from_json(json.loads(response.text))
 
     def getDKP(self, name:str):
-        trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value]).text)["Models"]
-        for row in trashjson:
-            if(row["CharacterName"] == name):
-                return row["CurrentDKP"]
-        return 10
+        try:
+            trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value], timeout=10).text)["Models"]
+            for row in trashjson:
+                if(row["CharacterName"] == name):
+                    return row["CurrentDKP"]
+        except:
+            return 1000
+        
 
     def getCharacterInfo(self, name:str) -> ApiCharInfo:
-        trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value]).text)["Models"]
+        trashjson = json.loads(self.session.get(self.urls[oDKPURL.Summary.value], timeout=15).text)["Models"]
         for row in trashjson:
             if(row["CharacterName"] == name):
                 return ApiCharInfo().from_json(row)
@@ -200,7 +252,7 @@ class openDKP(object):
     def lookupItem(self, itemName:str):
         url = "https://72rv4f6y1f.execute-api.us-east-2.amazonaws.com/beta/items/autocomplete?item=" + itemName + "&limit=5&game=0"
 
-        responseItems = json.loads(self.session.get(url).text)
+        responseItems = json.loads(self.session.get(url, timeout=10).text)
         for row in responseItems:
             return row
         return

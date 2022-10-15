@@ -36,30 +36,30 @@ class ApiRaidTick (object):
         return
 
     def populate(self,  description, value, raidId, tickId, attendees):
-        self.__description:str = description
-        self.__value:decimal = value
-        self.__raidId:int = raidId
-        self.__tickId:int = tickId
-        self.__attendees:List[str] = attendees
+        self.Description:str = description
+        self.Value:decimal = value
+        self.RaidId:int = raidId
+        self.TickId:int = tickId
+        self.Attendees:List[str] = attendees
         return
 
-    @property
-    def Description(self)->str: return self.__description
-    @property
-    def Value(self)->decimal: return self.__value
-    @property
-    def RaidId(self)->int: return self.__raidId
-    @property
-    def TickId(self)->int: return self.__tickId
-    @property
-    def Attendees(self)->List[str]: return self.__attendees
+    # @property
+    # def Description(self)->str: return self.Description
+    # @property
+    # def Value(self)->decimal: return self.Value
+    # @property
+    # def RaidId(self)->int: return self.RaidId
+    # @property
+    # def TickId(self)->int: return self.TickId
+    # @property
+    # def Attendees(self)->List[str]: return self.Attendees
     
     def from_json(self, json_str):
-        self.__description:str = json_str["Description"]
-        self.__value:decimal = json_str["Value"]
-        self.__raidId:int = json_str["RaidId"]
-        self.__tickId:int = json_str["TickId"]
-        self.__attendees:List[str] = json_str["Attendees"]
+        self.Description:str = json_str["Description"]
+        self.Value:decimal = json_str["Value"]
+        self.RaidId:int = json_str["RaidId"]
+        self.TickId:int = json_str["TickId"]
+        self.Attendees:List[str] = json_str["Attendees"]
         return self
     
     def toJson(self) -> str:
